@@ -1,0 +1,79 @@
+- name: create vault dir
+  file:
+    path: ".kube/vault"
+    state: directory 
+
+- name: Copy vault files to Home directory
+  copy:
+    src: "{{ item }}"
+    dest: ".kube/vault/{{ item }}"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+  with_items:
+    - 'vault_init.sh'
+    - 'vault.{{ dnsDomain }}.crt'
+    - 'vault.{{ dnsDomain }}.key'
+    - 'ca-chain.crt'
+
+- name: Render vault ingress yaml file
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/vault/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - 'vault_ingresses.yaml'
+    - 'vault.yaml'
+
+- name: Create vault namespace
+  shell: kubectl --kubeconfig=.kube/config create ns vault && sleep 10
+  ignore_errors: true
+
+- name: Create vault-tls secret
+  shell: |
+    kubectl --kubeconfig=.kube/config -n vault create secret generic vault-tls \
+    --from-file=vault.crt=.kube/vault/vault.{{ dnsDomain }}.crt \
+    --from-file=vault.key=.kube/vault/vault.{{ dnsDomain }}.key \
+    --from-file=vault.ca=.kube/vault/ca-chain.crt\
+    &&  kubectl --kubeconfig=.kube/config -n vault create secret tls vault-tls-ingress \
+    --key=.kube/vault/vault.{{ dnsDomain }}.key  \
+    --cert=.kube/vault/vault.{{ dnsDomain }}.crt \
+    && sleep 10
+  ignore_errors: true
+  notify: 
+    - "restart not ready kube-system pods"
+    - "restart not ready default pods"
+
+- meta: flush_handlers
+
+- name: shred vault.key
+  shell: shred -f -n 99 --remove -z .kube/vault/vault.{{ dnsDomain }}.key
+  ignore_errors: true
+
+- name: Recreate kube-dns
+  command: kubectl -n kube-system delete pods -l k8s-app=kube-dns
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: true
+  ignore_errors: true
+
+- name: Deploy vault into cluster
+  shell: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/vault/{{ item }}
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - vault.yaml
+    - vault_ingresses.yaml
+  notify: 
+    - "restart not ready vault pods"
+
+- meta: flush_handlers
+
+- name: Init vault
+  command: ~/.kube/vault/vault_init.sh
+

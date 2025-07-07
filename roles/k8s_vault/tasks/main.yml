@@ -1,0 +1,4 @@
+---
+
+- { include: deploy_vault.yml }
+- { include: config_intermediate_ca.yml }

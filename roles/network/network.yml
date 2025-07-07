@@ -1,0 +1,105 @@
+---
+  - name: Install ifsenslave module to manage bonding
+    apt:
+      name: ifenslave
+#      state: latest
+#      update_cache: true
+    become: true
+#    when: ansible_distribution == "Ubuntu"
+
+  - name : Install kernel module for bonding
+    shell : modprobe bonding
+    become: true
+    when: ansible_distribution == "Ubuntu"    
+  
+  - name: Rename netplan original file
+    shell : mv "{{ item.path }}/{{ item.file }}" "{{ item.path }}/{{ item.file }}.old"
+    with_items:
+     - {"path": "/etc/netplan", user: "{{ ansible_become_user }}", "file": 00-installer-config.yaml}
+    become: true
+    when: ansible_distribution == "Ubuntu"    
+
+  - name: Rename network interfaces original file
+    shell : mv "{{ item.path }}/{{ item.file }}" "{{ item.path }}/{{ item.file }}.old"
+    with_items:
+     - {"path": "/etc/network", user: "{{ ansible_become_user }}", "file": interfaces}
+    become: true
+    when: ansible_distribution == "Debian"    
+
+  - name: Push netplan conf file
+    template:
+#      src: 01-netcfg-bond-vlan915.j2
+#      src: 01-netcfg-hpe-bond-vlan915.j2
+      src: "{{ netplan_template }}"
+      dest: "{{ item.path }}/{{ item.file }}"
+      owner: "{{ item.user }}"
+      group: "{{ item.user }}"
+    with_items:
+     - {"path": "/etc/netplan", user: "{{ ansible_become_user }}", "file": 00-installer-config.yaml}
+    become: true
+    when: ansible_distribution == "Ubuntu" 
+
+  - name: Push debian network conf file
+    template:
+      src: "{{ netinterface_template }}"
+      dest: "{{ item.path }}/{{ item.file }}"
+      owner: "{{ item.user }}"
+      group: "{{ item.user }}"
+    with_items:
+     - {"path": "/etc/network", user: "{{ ansible_become_user }}", "file":interfaces}
+    become: true
+    when: ansible_distribution == "Debian" 
+
+  - name: Apply the network configuration
+    
+    shell : bash -c "sleep 5 && netplan apply"
+    async: 20
+    poll: 0 
+    become: true
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Apply patch for bonding issue in debian 11
+    shell : sed -i 's/ifstate -l/ifquery -l/g' /etc/network/if-pre-up.d/ifenslave 
+    args:
+      warn: false
+    become: true
+    when: ansible_distribution == "Debian" and use_vm == "no"
+
+  - name: Apply the network configuration
+    
+    shell : bash -c "sleep 5 && systemctl restart networking.service"
+    async: 20
+    poll: 0 
+    become: true
+    when: ansible_distribution == "Debian" 
+
+
+  #Update host IP in inventory
+  - set_fact:
+      ansible_ssh_host: "{{ srv_ip_pf }}"  
+
+  - name: Wait for connection
+    wait_for_connection:
+      delay: 10
+      timeout: 60
+
+  - debug:
+      msg: "System {{ ansible_ssh_host }} : {{ ansible_host }}"
+
+  - name: Install ifplugd (use to properly bring down interface if link is lost)
+    apt:
+      name: ifplugd
+    become: true
+    when: ansible_distribution == "Debian"
+
+  - name: Copy ifplugd config file
+    copy:
+      src: ifplugd
+      dest: /etc/default
+    become: true
+    when: ansible_distribution == "Debian"    
+
+  - name: Start ifplugd service
+    shell : bash -c "systemctl start ifplugd"
+    become: true
+    when: ansible_distribution == "Debian" 

@@ -1,0 +1,12 @@
+
+---
+- name: "create observability home directory"
+  file:
+    path: ".kube/observability"
+    state: directory
+
+- { include: opentelemetry.yml }
+- { include: prometheus.yml }
+# - { include: grafana.yml }
+# - { include: tempo.yml }
+

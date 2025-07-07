@@ -1,0 +1,33 @@
+
+- name: create storage dir
+  file:
+    path: ".kube/storage"
+    state: directory 
+
+- name: Push local storage manifest files
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/storage/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - hdd_storageclass.yaml
+    - provisioner.yaml
+
+- name: Deploy kubernetes storageclasses and local provisioner into cluster
+  command: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/storage/{{ item }}
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - hdd_storageclass.yaml
+    - provisioner.yaml
+  notify: 
+    - "restart not ready kube-system pods"
+    - "restart not ready default pods"
+
+- meta: flush_handlers

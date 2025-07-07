@@ -1,0 +1,246 @@
+corootCE:
+  enabled: true
+  bootstrap:
+    refreshInterval: 15s
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+  image:
+    repository: rgy01.johto.tdmc/kubernetes/ghcr.io/coroot/coroot
+    pullPolicy: IfNotPresent
+    tag: "0.17.5"
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+  # runAsUser: 1000
+  service:
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts: []
+    #  - host: chart-example.local
+    #    paths:
+    #      - path: /
+    #        pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+  resources:
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  persistentVolume:
+    size: 10Gi
+    storageClassName: ""
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  env: []
+
+corootConnect:
+  enabled: false
+  projectToken:
+  config:
+    prometheus:
+      url: ${PROMETHEUS_URL}
+      refresh_interval: 15s
+    pyroscope:
+      url: ${PYROSCOPE_URL}
+    clickhouse:
+      addr: http://clickhouse:9000
+      auth:
+        user: default
+        password: ${CLICKHOUSE_PASSWORD}
+      protocol: native
+      database: default
+      traces_table: otel_traces
+  image:
+    repository: rgy01.johto.tdmc/kubernetes/ghcr.io/coroot/coroot-connect
+    pullPolicy: IfNotPresent
+    tag: "2.0.2"
+  imagePullSecrets: []
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  env: []
+
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: false
+  nodeExporter:
+    enabled: false
+  pushgateway:
+    enabled: false
+  kubeStateMetrics:
+    enabled: true
+  kube-state-metrics:
+    metricLabelsAllowlist:
+      - pods=[*]
+  server:
+    enabled: true
+    global:
+      scrape_interval: 15s
+    retention: 1d
+    persistentVolume:
+      size: 10Gi
+
+existingPrometheus:
+  enabled: false
+  service:
+    serviceName: prometheus
+    servicePort: 9090
+    serviceNamespace: default
+  node-agent-podmonitor:
+    enabled: true
+  
+node-agent:
+  enabled: true
+  otel:
+    tracesEndpoint: "http://test-collector:4318/v1/traces"
+
+pyroscope:
+  enabled: false
+  persistence:
+    enabled: true
+    size: 30Gi
+  rbac:
+    create: true
+  pyroscopeConfigs:
+    retention: 8h
+    retention-levels:
+      0: 1h
+      1: 4h
+      2: 8h
+    log-level: debug
+    scrape-configs:
+      - job-name: 'kubernetes-pods'
+        enabled-profiles: [cpu, mem]
+        kubernetes-sd-configs:
+          - role: pod
+        relabel-configs:
+          - source-labels: [ __meta_kubernetes_pod_annotation_pyroscope_io_scrape ]
+            action: keep
+            regex: true
+          - source-labels:
+              [ __meta_kubernetes_pod_annotation_pyroscope_io_application_name ]
+            action: replace
+            target-label: __name__
+          - source-labels: [ __meta_kubernetes_pod_annotation_pyroscope_io_scheme ]
+            action: replace
+            regex: (https?)
+            target-label: __scheme__
+          - source-labels:
+              [ __address__, __meta_kubernetes_pod_annotation_pyroscope_io_port ]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target-label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source-labels: [ __meta_kubernetes_namespace ]
+            action: replace
+            target-label: namespace
+          - source-labels: [ __meta_kubernetes_pod_name ]
+            action: replace
+            target-label: pod
+          - source-labels: [ __meta_kubernetes_pod_phase ]
+            regex: Pending|Succeeded|Failed|Completed
+            action: drop
+          - action: labelmap
+            regex: __meta_kubernetes_pod_annotation_pyroscope_io_profile_(.+)
+            replacement: __profile_$1
+
+pyroscope-ebpf:
+  enabled: false
+  args: ["ebpf","--application-name", "k8s.ebpf", "--server-address", "http://coroot-pyroscope:4040"]
+  tolerations:
+    - operator: Exists
+
+clickhouse:
+  enabled: false
+  persistence:
+    size: 20Gi
+  replicaCount: 1
+  shards: 1
+  zookeeper:
+    enabled: false
+
+opentelemetry-collector:
+  enabled: false
+  mode: deployment
+  extraEnvs:
+    - name: CLICKHOUSE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: coroot-clickhouse
+          key: admin-password
+  ports:
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+
+  config:
+    processors:
+      batch:
+        timeout: 5s
+        send_batch_size: 100000
+    exporters:
+      clickhouse:
+        endpoint: tcp://clickhouse:9000?dial_timeout=10s&compress=lz4
+        database: default
+        ttl_days: 7
+        username: default
+        password: ${env:CLICKHOUSE_PASSWORD}
+        logs_table_name: otel_logs
+        traces_table_name: otel_traces
+        metrics_table_name: otel_metrics
+        timeout: 5s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+    service:
+      pipelines:
+        traces:
+          processors: [batch]
+          exporters: [clickhouse]
+          receivers: [otlp]

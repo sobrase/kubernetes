@@ -1,0 +1,218 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata: 
+  name: test
+  labels:
+    promscraping: "true"
+#  namespace: default
+spec:
+  ports:
+    - name: metrics
+      port: 9464
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 2500Mi
+    limits:
+      cpu: 2500m
+      memory: 3000Mi
+  mode: statefulset
+  targetAllocator:
+    image: rgy01.johto.tdmc/kubernetes/ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:main
+    enabled: true 
+    serviceAccount: otelcol-prometheus
+    prometheusCR:
+      enabled: true
+      scrapeInterval: 60s
+      podMonitorSelector:
+        otelcolscraper: "true"
+  # env:
+  #   - name: CLICKHOUSE_PASSWORD
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: clickhouse
+  #         key: admin-password
+
+  config: |
+    receivers:
+      otlp:           #coroot-node-agent envoit que des traces 
+        protocols:
+          grpc:
+          http:
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: 'otel-collector'
+            scrape_interval: 30s
+            static_configs:
+            - targets: [ '0.0.0.0:8888' ]
+        target_allocator:
+          endpoint: http://test-targetallocator             #attention à changer
+          interval: 30s
+          collector_id: "${POD_NAME}"
+    
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
+      batch:
+        send_batch_size: 10
+        timeout: 10s
+
+
+    exporters:
+      otlp:
+        endpoint: tempo.default.svc.devtgl2.dev.lan:4317
+        tls:
+          insecure: true
+      # clickhouse:
+      #   endpoint: clickhouse://clickhouse:9000?dial_timeout=10s&compress=lz4
+      #   database: coroottraces
+      #   ttl_days: 7
+      #   username: default
+      #   password: ${CLICKHOUSE_PASSWORD}
+      #   logs_table_name: otel_logs
+      #   traces_table_name: otel_traces
+      #   metrics_table_name: otel_metrics
+      #   timeout: 20s
+      #   retry_on_failure:
+      #     enabled: true
+      #     initial_interval: 20s
+      #     max_interval: 60s
+      #     max_elapsed_time: 300s
+      logging:
+        #verbosity: detailed
+        loglevel: debug
+      prometheus:
+        endpoint: '0.0.0.0:9464'
+        #namespace: default
+        #tls: 
+        #  ca_file: 
+        #  cert_file:
+        #  key_file:
+        #const_labels:
+        #  "label 1": value1
+        #send_timestamps: true 
+        #metric_expiration: 180m #how long metrics are exposed withtout updates
+        # attributest will be convrted to metric labels:
+        resource_to_telemetry_conversion: 
+          enabled: true 
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          #exporters: [clickhouse,otlp]
+          exporters: [otlp]
+        metrics:
+          receivers: [prometheus] #otlp à rajouter
+          #processors: [memory_limiter]
+          exporters: [prometheus, logging]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          #exporters: [logging,clickhouse]
+          exporters: [logging]
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otelcol-prometheus
+
+---
+
+# car otelcol a besoin d'avoir acces aux CR de prometheus pour scraper
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: opentelemetry-targetallocator-cr-role
+rules:
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  - podmonitors
+  verbs:
+  - '*'
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: otelcol-prometheus-role
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/metrics
+  - services
+  - endpoints
+  - pods
+  verbs: ["get","list","watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get"]
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs: ["get","list","watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otelcol-prometheus-discover-cr
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: opentelemetry-targetallocator-cr-role
+subjects:
+- kind: ServiceAccount
+  name: otelcol-prometheus
+  namespace: default # à changer !
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otelcol-prometheus-scraping
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: otelcol-prometheus-role
+subjects:
+- kind: ServiceAccount
+  name: otelcol-prometheus
+  namespace: default # à changer !
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: prometheus-exporters-monitor
+  labels:
+    otelcolscraper: "true"
+spec:
+  selector:
+    matchLabels: 
+      allowotelcolscraping: "true"
+  podMetricsEndpoints:
+  - port: metrics
+    # relabelings:
+    # - action: replace
+    #   sourceLabels:                       # voir https://prometheus.io/docs/prometheus/latest/configuration/configuration/#pod pour voir toutes les metadata des pods
+    #   - __meta_kubernetes_pod_node_name
+    #   targetLabel: instance
+

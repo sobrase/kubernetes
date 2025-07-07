@@ -1,0 +1,3 @@
+{
+  "policy": "path \"pki_{{ cluster_name }}*\" { capabilities = [\"read\", \"list\"] }\npath \"pki_{{ cluster_name }}/sign/{{ cluster_name }}\" { capabilities = [\"create\", \"update\"] }\npath \"pki_{{ cluster_name }}/issue/{{ cluster_name }}\" { capabilities = [\"create\"] }"
+}

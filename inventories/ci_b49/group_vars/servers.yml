@@ -1,0 +1,12 @@
+---
+source_list_path: /etc/apt/sources.list
+ca_path: /usr/local/share/ca-certificates
+ntp_path: /etc/ntp.conf
+ca_certif: PhoenixRootCA.crt
+ntp_server_ip: '10.192.2.1'
+apt_docker_version: '5:20.10.14~3-0'
+apt_container_version: '1.5.11-1'
+vault_token: 'hvs.vomyc81HjZTQ5aaYYJniLkL1'
+#ssh_keys: /home/myname/.ssh/id_rsa.pub
+#netplan_template: ""
+#netinterface_template: "debian-VM-simple-interface.j2"

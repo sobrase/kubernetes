@@ -1,0 +1,128 @@
+#---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: nginx-ingress-tls
+#  namespace: nginx-ingress
+#type: kubernetes.io/tls
+#data:
+#  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUdvekNDQkl1Z0F3SUJBZ0lVVnJmS20zQWg2eS9kaHNEQWhvUUlrZkRaazE4d0RRWUpLb1pJaHZjTkFRRUwKQlFBd1VURUxNQWtHQTFVRUJoTUNWVk14RFRBTEJnTlZCQW9UQkVsRVNVTXhEVEFMQmdOVkJBc1RCRWxFU1VNeApKREFpQmdOVkJBTU1HMGxFU1VOSmMzTjFaWEpmY0d0cExXczRjeTFqYkhWemRHVnljekFlRncweU16QTJNRFV4Ck16UXlOVGxhRncweU16RXlNVGN4TXpRek1qbGFNRUF4Q3pBSkJnTlZCQVlUQWxWVE1RMHdDd1lEVlFRTEV3UkoKUkVsRE1TSXdJQVlEVlFRREV4bHVaMmx1ZUMxcGJtZHlaWE56TG1zNGN5NWtaWFl1YkdGdU1JSUNJakFOQmdrcQpoa2lHOXcwQkFRRUZBQU9DQWc4QU1JSUNDZ0tDQWdFQTdUUFhHUWJzTW1ERFhXemZCQ3hvTks4YlFKSTJuckZ1Cmg2Q1RtSWpOUzdQTVZXL2VPV21BZHN1MzFlVEtPMndiT1cwRzV2MmYrM2c3ZEJoUmM5UzYxYmc4b2lsVW01MngKVWZrNzZxem5kNndOd0I2M1VVd3g2QjdHQjZtWno0Y1Y5V1JTdnZiQmFsbGVKaVJxLzk4RzNkMXFVWXJNNGRzUwpEZFc1eFBuRkRQaitiOW9vV2VTME5XMGlFY0k1OGxpNEIzVGRMTzFBM0UrSExwVmFyY2dPLzBHZzBWVVdIOUdSCk9QbzhlUFdKQnBrS2FDcDd5UGpmdHd5a2J5THdrczFESDFzUm9TR2NEbHVpM1NWd0RObmgrTTVXRGVsR3BleGIKTzYvWE9yNWgvSFczS3ZqdzlvZG1HQjFzN0hxOCsxNHdVbGJ5dEhXM2hXWm5zQWxmODdjTjJSYlJzT3B2dUd0WgpydnZjMXEzK05xWlZ4U2dhOVhPN2JBd1FlQm9xZE4rUmIvdHlLMEJBVlpxZWNsMjBTNDNzZmdYUklYVlBSVzBMCk1VaVpQUnh2dVlQdjVwWkFLNjBFY3c4MG16bGNwSlBEamhYM0hnWmgvSjhKMmoxYzhnaHNwdG10clBKaGVET1kKT3owa25YT2xhdVpqSFBGMXpsR3psb1NqSEI1aHFoelVwQ3UrQTVISklVK2lFR2NuZnplN2h0RTE0Z2JsNG5DbwpLNHl0YWppVWVaSk03Q0JRWVR5dUI5UitaTXV6dlBjNDBVRVZWMDZFL3JITS83Z1ZKVzZ6SFVoQWt3MS9RNytiCnBBUWRWYWpCNXFZd2dmd09mamtsS1N1STRTN3U4dC9oSS9reS82MTdBZWxleFZGdSt0end0VmtiUmhZSnV0NWcKT3FsQ2tsZ0J0TVVDQXdFQUFhT0NBWUl3Z2dGK01DY0dBMVVkSlFRZ01CNEdDQ3NHQVFVRkJ3TUJCZ2dyQmdFRgpCUWNEQWdZSUt3WUJCUVVIQXdrd0hRWURWUjBPQkJZRUZLWFAvRmhvT1cwWEdiOHdySEVvakpyYkE4ZmFNQjhHCkExVWRJd1FZTUJhQUZBUE5ya2YrNk9YeVhpeGlkVnhZV3ZNODF5cGVNSUdUQmdnckJnRUZCUWNCQVFTQmhqQ0IKZ3pCREJnZ3JCZ0VGQlFjd0FZWTNhSFIwY0RvdkwzWmhkV3gwTG1SbGRpNXNZVzQ2T0RJd01DOTJNUzkwYjJSdgpMM0JyYVMxck9ITXRZMngxYzNSbGNuTXZiMk56Y0RBOEJnZ3JCZ0VGQlFjd0FvWXdhSFIwY0RvdkwzWmhkV3gwCkxtUmxkaTVzWVc0Nk9ESXdNQzkyTVM5d2Eya3Rhemh6TFdOc2RYTjBaWEp6TDJOaE1Ea0dBMVVkRVFReU1EQ0MKRFNvdWF6aHpMbVJsZGk1c1lXNkNHVzVuYVc1NExXbHVaM0psYzNNdWF6aHpMbVJsZGk1c1lXNkhCSDhBQUFFdwpRZ1lEVlIwZkJEc3dPVEEzb0RXZ000WXhhSFIwY0RvdkwzWmhkV3gwTG1SbGRpNXNZVzQ2T0RJd01DOTJNUzl3CmEya3Rhemh6TFdOc2RYTjBaWEp6TDJOeWJEQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FnRUFSOHE5dXJmN2FEOXQKMGZhM3kvNFNuUWozcS9BQnp6VmFzaFlKd1pZa3dES1BjRzhnbXpObEJoWGNuWHZWL1ByK00veGxwTkd0QVowSgp1T0xNWk4rMkJqU2loVWhYRVFuTENXdUoySHNvOFQvS1VCZ1VlTFg1eWp5TUxmQ0dudUNaaUNQQ3RRU1dORzN1CjNlaGJFMktUVTV2WXc3N1RuVnRwRlN5MGhYMTFYMmNpb0JrRWhQYUhiUnAzWFRYOG9CTHkrWlBrRm9ucTl5YVUKOEZvVnJVYnd2Vk95QXFZdENEK013eFBYOXhLUXlNYzFIYTJUdXd2cGRzQjI2QWtoMTNJbkFZR1JjajZRa29vbQoxU1VmeWxyd0tXZUF0YlF5MFhRSWE4RkowMGJEeTdTTmZLcy9NajBBUHF4ek5STjY4Wm1aQ0xPSGR1ajRQdmdHClFPL1lIS05JL0RnU3dFSGx5OVp0ckI2VHJJaUVrQ0ZiUzZIK0ZBVjllZ3BieFZCaUNTVFVMa2tlcEJxQzBlRUcKY1JUUjBOS2VlQnlXSThXcHFVUUV6eUUvTDkrZVM3bnY1SlZFNmxCcnMzVzUzYjhoYmM5cGlJS0IvY1k5MTQ5ZAppd1J2RFl5YXE1TjdtY2FySmJPWkVlMWpjbVg4KzBiclZvMGliR0lYUDdsamx2RlA5akJYZEpNK21uTnpqTkZnCkluWnNtWG5HQUVkOFlQSWp2YXNiUnlwQUpKeUF5eTkzWjVGejdzZzFxUTd4T0hrdFlUY2cwZGE3Q0dWSzVrdFoKa09VRmtiSGJyYytuaTBzQlRBSE5wL2NMMFRDYmtTZWxaUVlvYlJJc3RrUldzWkloTGsray9tT1JoaXIyNDBueQpEYmdnNXlRYWIxdHdMZDNjQ0NaK2hsaTR5aDloM3hjPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+#  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS1FJQkFBS0NBZ0VBN1RQWEdRYnNNbUREWFd6ZkJDeG9OSzhiUUpJMm5yRnVoNkNUbUlqTlM3UE1WVy9lCk9XbUFkc3UzMWVUS08yd2JPVzBHNXYyZiszZzdkQmhSYzlTNjFiZzhvaWxVbTUyeFVmazc2cXpuZDZ3TndCNjMKVVV3eDZCN0dCNm1aejRjVjlXUlN2dmJCYWxsZUppUnEvOThHM2QxcVVZck00ZHNTRGRXNXhQbkZEUGorYjlvbwpXZVMwTlcwaUVjSTU4bGk0QjNUZExPMUEzRStITHBWYXJjZ08vMEdnMFZVV0g5R1JPUG84ZVBXSkJwa0thQ3A3CnlQamZ0d3lrYnlMd2tzMURIMXNSb1NHY0RsdWkzU1Z3RE5uaCtNNVdEZWxHcGV4Yk82L1hPcjVoL0hXM0t2ancKOW9kbUdCMXM3SHE4KzE0d1VsYnl0SFczaFdabnNBbGY4N2NOMlJiUnNPcHZ1R3RacnZ2YzFxMytOcVpWeFNnYQo5WE83YkF3UWVCb3FkTitSYi90eUswQkFWWnFlY2wyMFM0M3NmZ1hSSVhWUFJXMExNVWlaUFJ4dnVZUHY1cFpBCks2MEVjdzgwbXpsY3BKUERqaFgzSGdaaC9KOEoyajFjOGdoc3B0bXRyUEpoZURPWU96MGtuWE9sYXVaakhQRjEKemxHemxvU2pIQjVocWh6VXBDdStBNUhKSVUraUVHY25memU3aHRFMTRnYmw0bkNvSzR5dGFqaVVlWkpNN0NCUQpZVHl1QjlSK1pNdXp2UGM0MFVFVlYwNkUvckhNLzdnVkpXNnpIVWhBa3cxL1E3K2JwQVFkVmFqQjVxWXdnZndPCmZqa2xLU3VJNFM3dTh0L2hJL2t5LzYxN0FlbGV4VkZ1K3R6d3RWa2JSaFlKdXQ1Z09xbENrbGdCdE1VQ0F3RUEKQVFLQ0FnRUFqMW93R2FEMGFESFFnQXJHOFNmQlJtMjVJNW41eG9obXl6TEJZSUwweDFaL0cvZENyeUhTa0hqbgp2aTNLQm9WOElvV0FrV01nSjRMdk0yZHErbnpLK1ZTaDJFTHdMaWZzUFNWS0Q3YTFJTDdyaEh0THdLY3kxaHliCkE1QjlNMDFwZU9kTGxydGNBdURGcEhtSDdPRWxyam9kQWZESGg0dTA2b1dMQXI4TVZwMjRiM0xCeGlvUXV1VWMKbk96cnhrblYxalBMWTFaelIzSU11WnRydFBEZUYyZmJRQWVUR21HMXlXQjU0WVJLYnFGWkI4RDlGR1ZNRnIxZQpOd2cvcWdqQkV4Y2ZuV2pKZm1mbEVvK0ltMHVtWkk2V3RVdVE5Yi9WRjBwYTRkYWpNMGNWRHJScU5DTjZFUUxmCmpEOVZMUGtzYk9hOVFWQ1BPK0M2czBuSEltd3p3aUFnUk9LWXg5NXJRSHRMTzUzM256U2w0YVJnYnM3VWhUT2MKSGZscVBXS1djNTNuTlY0N0dydEc5VWNOc08zME5GbEdXNkRpWDVvK0xPUFJoZEhCN3gyb1ZHekdnQ2lSUGFBVwo5VUxHWkpCb3FLNE1TNk96T0RQTmlFN1R6MS8raGdIY1dubzlQdmQ2Y3BFUU1ycndSTUNoUXRWOXdDWWhmWXZ4CnVEb09DQmJvRTBtRUw3YWlKRWZrRHc0Ri9MV2lmQ2ZBV2dndUpheG4zNDFWQUZQTTMwakF5MXNjK01LQ04yelQKd2VEQlBEdzZvU0lMQUZIMmgwQ3NXVUt6cEJrMmRuaEtSUWwwRm9sVnozelFOYklTQmt5YXhUbzBzdFBlenUybwpXOFdRZWV1YjhlOU1sZGhVSUdRamwvMWMrZEFWejliNG9sK1V3NzB0aE5McTBaU2ZiU0VDZ2dFQkFQOEN3TndvCllyWW8zYTdZby94WWRpWFdYZU5QclFsTGVPNWxyYlNGZVBCSU5aa09USlFXY0tlOWYycEpzRktyTFZRaVhzdWEKd2dkNktuK251VDN5ek9ZamxxZXhTTlVCaDlpR2JINVp5YXUrcFE2eUNmQ0VTNWpTQ01NdlNyWkhMOEUrVnlVcwpZNUhjWTRPSzl6OWFBK2FwSXpjY0lyVUNUdE4yNGcwLzNDSEExUWlEd2VOeTNkRlhCcUp6L2k1bjlZK2hwb2owClBJUzY4RE0ydWlvSEE1ZFpyTWRHMDFxSzc1RkNaaExyVVdzeVZKc3F2Rmx1YVp4L0FKU0ZSbHlHcjJnNzYzYXIKbk5yVlI4VEx6bEQ3Zmxrc2Y2V3BYdGdUMXNDZkVGRzNwejdOK0JGWllwcUF3a2tvRlVoQ002alF0UlFpOW0rTApsTkQranE1VEtVeVFiSjBDZ2dFQkFPNGZadHpBUUVLMVZUNUlEVzQzK1lWdmF0SnRxR2RRTlFyMENBRDBZaEoyCkpFSHBnZWwwT1pFRVRRRzd1VFI4cXVpWGpwcXlaWVM0MTBDYkp2RUZPK012K1BPcU1EbHozZ2FpSnRWMlNOMWYKVWpsTUtodEtMcHFERFlCaDdkb1dZUitldDRoTGxjNkNudmpkMGphZ3ZFcS9qcFdDMEJsdGNwbTRzTW8rd1BOawpKalFpRGtQV3VFbmtLLzM1V2JPMXFLMnFPUDVkdTFhTGpKYUNBZXpFUFE4QmhLWnNPRzdHME5XTUtldXBzVkx2CklCNWppUDB6YlhYc2VDRUF5a0pyZzlwQ3lVUU1RTDNnRDNUMkJ5MGVJbGxHeHpqdytTTXM3Y3B4Sy9zTElJNU0KblpqYzJDbitoM2p4QkVaa0YzZU9BUUJPR3Y5TTZGaDNaVWVUUlJYYTdFa0NnZ0VBSmpEc1gweHhGQ1RrcG1YdAprVUpTVjNKV1YwKzhjM0xwSnBMMXc5NWxjVjd2SUFBRE9mNXVXc0RIajB4LzZyR1dOVTU4Y2ZPNGNWUTdmeWpJClZsM0JrQW51YXlqaTVudTNNNWRXTWtvU0tQV0JWTVVYTmYwcU1UWHJlQWZpSVpCaHQ0ZzFsdXloOE50WDBBQ0UKN09qM1FwazhHK25Mek40T25oN2sxZVVsZTZ5Y2V3ejRnYTdYUjUzSDhaWjdqOG1qL2lIUWhoeEYzLzc3TUVCVworeXBYd0ZmK3gwMTFJODlBOTdsQS9qNWQwRGNXY3JLZ3lLZi9peDkrSDhBaC9JTnpTNklGcnAwZS9hc0pkNUNxClVuaUh3S1VvYk5BRDAwcU5WQVcrZE82VFRwV2NQRVR0dm9QZ0ZRSzZ4VHFjOEFCcHpoMDZXUlJIY2xGZFh3QTMKWkM4UkJRS0NBUUFvcFoyV1l3N1ZGRVVIeTU3WFNLREVRVCtYeWZZc0pJblpZOHlWOVNGa2kxd25FQ2dINUxvSwo0aFFQRHE5UG9WUS9QZGV1Mm5MdjArbVNjcW1VRE5Pck5UNG13YzlYajByQUVSL1Y0a29QMTd5ZVlUenl5WmZvCjhpUDAzVUtQcnJCSGlIMUZ1N2xIdGc1UzV2S0NOcS9OaHFOZExDWS9vT29tQ1Z2TU9pZ1BvL0hOaGw2dS85RVgKYytaNmhQemw2MFZ1MTViQS9Oa0VyZStDcFpDVWpPN3JSOVFQNEh0RmxaU0NUMW04aTR2a1gwTTVUTDVPa2wvRgorR2FOSTZoaTdCMW12VzNEdXQrMlNhLzV4Q0YzZHlSZjN2QVU3VFZwNXJwMGl4cjUwRzF2UE83TjhDektCbE96CnRsaUhkNEIxL1B4NHc5eGg1Z3ZuUmdJNDFJKy9hazVaQW9JQkFRRG42QzNmR2NXSUpjanE1eFNhamU2bG5tMjYKUjlSOW03eng0N1hMaDBXTm5vSHkyMjFqN1gxYzBGWDRFQlhuU2tMcDdiSUF5a0crajNGMEJZNnd0VnI5LzhwQgpXdEcwZGxxMjExQ1lGUHZXYXA0dXRJTlA0UmM2TnExY3pjMjdWL1RBaGRMQzczSjRINjluRW9QN1FLdStrbTBMCjdYWGtTK2N3MjZPNXQyTkM1NW9ERWcrOERPWDlTSDV3Mks2R1Zab2xqSWIyUlBrRTA4UHluV3Jndlo2VmJUaGQKSDlHN3BFREZadjBPTlR3YngzV0pIak1UM0M1VHcyWjNuRTlJckdUaTJmTThqUlJPaEp3MDBZU1VaODU5anZ2VQpoVDBKenpMc21wKzVKRWpDWFh5Q3JkcFJHSlVIWGw5SVpCeW9abmJZdW80K0pmc3U2czhCRzRvSERrNjMKLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0K
+#---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+spec:
+  selector:
+    matchLabels:
+      app: nginx-ingress
+  template:
+    metadata:
+      labels:
+        app: nginx-ingress
+        app.kubernetes.io/name: nginx-ingress
+     #annotations:
+       #prometheus.io/scrape: "true"
+       #prometheus.io/port: "9113"
+       #prometheus.io/scheme: http
+    spec:
+      serviceAccountName: nginx-ingress
+      automountServiceAccountToken: true
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "1"
+
+#        fsGroup: 101 #nginx
+#      volumes:
+#      - name: nginx-etc
+#        emptyDir: {}
+#      - name: nginx-cache
+#        emptyDir: {}
+#      - name: nginx-lib
+#        emptyDir: {}
+#      - name: nginx-log
+#        emptyDir: {}
+      containers:
+      - image: rgy01.johto.tdmc/kubernetes/nginx/nginx-ingress:3.1.0
+        imagePullPolicy: IfNotPresent
+        name: nginx-ingress
+        ports:
+        - name: http
+          containerPort: 80
+          hostPort: 80
+        - name: https
+          containerPort: 443
+          hostPort: 443
+        - name: readiness-port
+          containerPort: 8081
+        - name: prometheus
+          containerPort: 9113
+        readinessProbe:
+         httpGet:
+           path: /nginx-ready
+           port: readiness-port
+         periodSeconds: 1
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+         #limits:
+         #  cpu: "1"
+         #  memory: "1Gi"
+        securityContext:
+          allowPrivilegeEscalation: false
+#          readOnlyRootFilesystem: true
+          runAsUser: 101 #nginx
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+#        volumeMounts:
+#        - mountPath: /etc/nginx
+#          name: nginx-etc
+#        - mountPath: /var/cache/nginx
+#          name: nginx-cache
+#        - mountPath: /var/lib/nginx
+#          name: nginx-lib
+#        - mountPath: /var/log/nginx
+#          name: nginx-log
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        args:
+          - -nginx-configmaps=$(POD_NAMESPACE)/nginx-config
+          - -default-server-tls-secret=$(POD_NAMESPACE)/nginx-ingress-tls
+         #- -include-year
+         #- -v=3 # Enables extensive logging. Useful for troubleshooting.
+         #- -report-ingress-status
+         #- -external-service=nginx-ingress
+         #- -enable-prometheus-metrics
+         #- -global-configuration=$(POD_NAMESPACE)/nginx-configuration
+#      initContainers:
+#      - image: nginx/nginx-ingress:3.1.0
+#        imagePullPolicy: IfNotPresent
+#        name: init-nginx-ingress
+#        command: ['cp', '-vdR', '/etc/nginx/.', '/mnt/etc']
+#        securityContext:
+#          allowPrivilegeEscalation: false
+#          readOnlyRootFilesystem: true
+#          runAsUser: 101 #nginx
+#          runAsNonRoot: true
+#          capabilities:
+#            drop:
+#            - ALL
+#        volumeMounts:
+#        - mountPath: /mnt/etc
+#          name: nginx-etc

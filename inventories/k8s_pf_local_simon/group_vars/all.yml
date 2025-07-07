@@ -1,0 +1,66 @@
+---
+
+guest_user_pass: generic
+guest_root_pass: generic
+
+ansible_python_interpreter: /usr/bin/python3
+ansible_user: user
+ansible_become_user: root
+ansible_password: "{{ guest_user_pass }}"
+ansible_become_password: "{{ guest_root_pass }}"
+ansible_become_method: su
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+
+ntp_server_ip: '10.192.2.1'
+# Kubernetes
+kube_version: v1.26.3
+controlPlaneEndpoint: 10.192.2.133:6443
+token: abcdef.0123456789abcdef
+certificateKey: 76e20fb6cbfeef9fbe0931bfe851281fb482b23efaa98e856aba4877574df077
+repo_k8s: 192.168.1.1
+kubeadm_gpg: pcplateform.gpg
+# 1.8.x feature: --feature-gates SelfHosting=true
+#init_opts: ""
+#
+## Any other additional opts you want to add..
+##kubeadm_opts: ""
+### For example:
+### kubeadm_opts: '--apiserver-cert-extra-sans "k8s.domain.com,kubernetes.domain.com"'
+##
+##service_cidr: "10.96.0.0/12"
+##pod_network_cidr: "10.244.0.0/16"
+##
+### Network implementation('flannel', 'calico', 'canal')
+##network: calico
+#
+## Change this to an appropriate interface, preferably a private network.
+## For example, on DigitalOcean, you would use eth1 as that is the default private network interface.
+#network_interface: ""
+#
+#enable_dashboard: yes
+#
+## A list of insecure registries you might need to define
+## insecure_registries: []
+#insecure_registries: ['rgy01.johto.tdmc']
+#
+#systemd_dir: /lib/systemd/system
+#system_env_dir: /etc/sysconfig
+#network_dir: /etc/kubernetes/network
+#kubeadmin_config: /etc/kubernetes/admin.conf
+#kube_addon_dir: /etc/kubernetes/addon
+#
+## Additional feature to install
+#additional_features:
+#  helm: false
+#  metallb: false
+#  healthcheck: false
+#
+## temporary directory used by additional features
+#tmp_dir: /tmp/kubeadm-ansible-files
+#
+## Container runtimes ('containerd', 'crio')
+container_runtime: crio
+#
+## helm helm version
+#helm_version: "v2.17.0"

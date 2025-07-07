@@ -1,0 +1,24 @@
+
+- name: Disable system swap
+  become: true
+  shell: "/sbin/swapoff -a"
+
+- name: Remove current swaps from fstab
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '(?i)^([^#][\S]+\s+(none|swap)\s+swap.*)'
+    line: '# \1'
+    backrefs: yes
+    state: present
+  become: true
+
+- name: Disable swappiness
+  sysctl:
+    name: vm.swappiness
+    value: "0"
+    state: present
+  become: true
+
+- name: apply sysctl conf
+  shell: "/sbin/sysctl --system"
+  become: true

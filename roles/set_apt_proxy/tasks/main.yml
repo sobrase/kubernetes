@@ -1,0 +1,4 @@
+---
+- { include: setup.yml, tags: always}
+- { include: update.yml, tags: upd }
+- { include: apt-install.yml, tags: apt-install }

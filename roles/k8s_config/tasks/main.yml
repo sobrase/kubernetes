@@ -1,0 +1,8 @@
+---
+# - { include: set_pv_partitions.yml}
+- { include: ca.yml }
+- { include: ntp.yml }
+- { include: swapoff.yml}
+- { include: modules.yml}
+- { include: crio.yml}
+#   when: container_runtime == "crio"

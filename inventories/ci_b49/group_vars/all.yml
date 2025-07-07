@@ -1,0 +1,12 @@
+---
+
+guest_user_pass: generic
+guest_root_pass: generic
+
+ansible_python_interpreter: /usr/bin/python3
+ansible_user: user
+ansible_become_user: root
+ansible_password: "{{ guest_user_pass }}"
+ansible_become_password: "{{ guest_root_pass }}"
+ansible_become_method: su
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no'

@@ -1,0 +1,83 @@
+
+# - name: Read sdb info
+#   parted: device=/dev/sdb unit=MiB
+#   register: sdb_info
+#   become: true
+
+# - name: mount partition for the vault pv
+#   mount:
+#     path: /mnt/local-hdd/vault
+#     src: /dev/sdb1
+#     state: absent
+#   become: true
+
+# - name: Remove exisiting partition in sdb
+#   parted:
+#     device: /dev/sdb
+#     number: '{{ item.num }}'
+#     state: absent
+#   loop: '{{ sdb_info.partitions }}'
+#   become: true
+
+# - name: Create partition for vault
+#   parted:
+#     device: /dev/sdb
+#     number: 1
+#     state: present
+#     part_end: 25%
+#   become: true
+
+# - name: Create partition for app2
+#   parted:
+#     device: /dev/sdb
+#     number: 2
+#     state: present
+#     part_start: 25%
+#     part_end: 50%
+#   become: true
+
+# - name: Create partition for app3
+#   parted:
+#     device: /dev/sdb
+#     number: 3
+#     state: present
+#     part_start: 50%
+#     part_end: 75%
+#   become: true
+
+# - name: Create partition for app4
+#   parted:
+#     device: /dev/sdb
+#     number: 4
+#     part_start: 75%
+#     part_end: 100%
+#     state: present
+#   become: true
+
+# - name: make file systems
+#   filesystem:
+#     fstype: "{{ item.fstype }}"
+#     dev: "{{ item.dev }}"
+#   with_items:
+#     - { dev: '/dev/sdb1', fstype: 'ext4' }
+#     - { dev: '/dev/sdb2', fstype: 'ext4' }
+#     - { dev: '/dev/sdb3', fstype: 'ext4' }
+#     - { dev: '/dev/sdb4', fstype: 'ext4' }
+#   become: true
+  
+# - name: make local-hdd dir for pv bind
+#   file:
+#     path: "{{ item.path }}"
+#     state: directory
+#   with_items:
+#     - { path: '/mnt/local-hdd' }
+#     - { path: '/mnt/local-hdd/vault' }
+#   become: true
+
+# - name: mount partition for the vault pv
+#   mount:
+#     path: /mnt/local-hdd/vault
+#     src: /dev/sdb1
+#     fstype: ext4
+#     state: mounted
+#   become: true

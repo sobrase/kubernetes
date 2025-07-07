@@ -1,0 +1,57 @@
+
+- name: Update APT
+  apt:
+    update_cache: yes
+  become: true
+  ignore_errors: yes
+
+- name: Install xfs packages
+  apt:
+    state: present
+    force: true
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - xfsprogs
+  become: true
+
+- name: Docker service
+  service:
+    name: docker
+    state: stopped
+    enabled: yes
+  become: true    
+
+- name: umount /var/lib/docker
+  mount:
+    path: /var/lib/docker
+    src: /dev/mapper/vg_root-lv_varlibdocker
+    state: absent
+    fstype: ext4
+    backup: yes
+  become: yes  
+
+- name: Create a xfs filesystem on /dev/mapper/vg_root-lv_varlibdocker
+  filesystem:
+    fstype: xfs
+    dev: /dev/mapper/vg_root-lv_varlibdocker
+    force: yes
+  become: yes
+
+- name: mount /var/lib/docker
+  mount:
+    path: /var/lib/docker
+    src: /dev/mapper/vg_root-lv_varlibdocker
+    state: mounted
+    fstype: xfs
+    backup: yes
+    opts: defaults,uquota,pquota
+  become: yes
+
+- name: Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes    
+ 

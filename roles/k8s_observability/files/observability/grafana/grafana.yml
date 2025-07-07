@@ -1,0 +1,71 @@
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-cert
+spec:
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: cluster-issuer
+  dnsNames: 
+    - grafana-kube.kanto.tdmc
+  commonName: grafana-kube.kanto.tdmc
+  secretName: grafana-cert
+  duration: 24h
+  renewBefore: 2h
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096 
+
+
+---
+
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: test-grafana 
+  labels:
+    dashboards: "grafana"
+spec:
+  config:
+    log:
+      mode: "console"
+    auth:
+      disable_login_form: "false"
+    security:
+      admin_user: root
+      admin_password: root
+  deployment:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: grafana
+              image: rgy01.johto.tdmc/bigfoot/public/grafana/grafana:10.1.1
+              securityContext:
+                allowPrivilegeEscalation: true
+                readOnlyRootFilesystem: false
+              readinessProbe:
+                failureThreshold: 3
+  ingress:
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: grafana-kube.kanto.tdmc
+          http:
+            paths:
+              - backend:
+                  service: 
+                    name: test-grafana-service
+                    port:
+                      number: 3000
+                path: /
+                pathType: Prefix
+      tls:
+        - hosts:
+            - grafana-kube.kanto.tdmc
+          secretName: grafana-cert
+
+

@@ -1,0 +1,5 @@
+  - name: Add docker apt repository
+    apt_repository:
+      repo: deb [arch=amd64] http://download.docker.com/linux/debian bullseye stable
+      state: present
+    become: true

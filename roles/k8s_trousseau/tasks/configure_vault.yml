@@ -1,0 +1,166 @@
+- name: read vault token
+  shell: cat /tmp/vault_token
+  register: VAULT_TOKEN
+
+- set_fact:
+    VAULT_TOKEN: "{{ VAULT_TOKEN.stdout }}"
+
+- name: create intermediate_pki_config dir
+  file:
+    path: ".kube/trousseau/conf"
+    state: directory 
+
+- name: Copy trousseau files to Home directory
+  copy:
+    src: "{{ item }}"
+    dest: ".kube/trousseau/conf/{{ item }}"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+  with_items:
+    - 'trousseau_kv_policy.json'
+    - 'trousseau_transit_policy.json'
+
+- name: enable kubernetes auth
+  shell: |
+    curl -sS \
+    -X POST \
+    -H "X-Vault-Request: true" \
+    -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    -d '{"type":"kubernetes","description":"","config":{"options":null,"default_lease_ttl":"0s","max_lease_ttl":"0s","force_no_cache":false},"local":false,"seal_wrap":false,"external_entropy_access":false,"options":null}' \
+    https://vault.{{ dnsDomain }}/v1/sys/auth/kubernetes
+
+- name: read vault trousseau token
+  shell: |
+    kubectl -n kube-system get secret trousseau-vault-auth --output {% raw %}'go-template={{ .data.token }}'{% endraw %} | base64 --decode
+  register: SA_JWT_TOKEN
+
+- set_fact:
+    SA_JWT_TOKEN: "{{ SA_JWT_TOKEN.stdout }}"
+
+- name: debug token
+  debug:
+    var: SA_JWT_TOKEN
+
+
+- name: read issuer
+  shell: kubectl get --raw /.well-known/openid-configuration | jq -r .issuer
+  register: K8S_ISSUER
+
+- set_fact:
+    K8S_ISSUER: "{{ K8S_ISSUER.stdout }}"
+
+- name: create the kubernetes auth json
+  shell:
+    cmd: |
+      tee .kube/trousseau/conf/kube_auth_conf.json <<EOF
+      { 
+        "kubernetes_host": "https://10.10.0.1:443", 
+        "kubernetes_ca_cert": "$(awk '{printf "%s\\n", $0}' /etc/kubernetes/pki/ca.crt)",
+        "token_reviewer_jwt":"{{ SA_JWT_TOKEN }}",
+        "issuer":"{{ K8S_ISSUER }}"
+      }
+      EOF
+
+- name: set the kubernetes auth for trousseau
+  shell:
+    cmd: |
+      curl -sS \
+      --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      --request POST \
+      --data @.kube/trousseau/conf/kube_auth_conf.json \
+      https://vault.{{ dnsDomain }}/v1/auth/kubernetes/config
+
+
+- name: enable vault transit
+  shell:
+    cmd: |
+      curl -sS \
+      -X POST \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d '{"type":"transit","description":"","config":{"options":null,"default_lease_ttl":"0s","max_lease_ttl":"0s","force_no_cache":false},"local":false,"seal_wrap":false,"external_entropy_access":false,"options":null}' \
+      https://vault.{{ dnsDomain }}/v1/sys/mounts/transit
+
+
+- name: enable trousseau-kms transit
+  shell:
+    cmd: |
+      curl -sS \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d 'null' \
+      https://vault.{{ dnsDomain }}/v1/transit/keys/trousseau-kms
+
+- name: enable trousseau-kms transit with policy 
+  shell:
+    cmd: |
+      curl -sS \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d @.kube/trousseau/conf/trousseau_transit_policy.json \
+      https://vault.{{ dnsDomain }}/v1/sys/policies/acl/trousseau-transit-ro
+
+
+- name: get trousseau transit token
+  shell:
+    cmd: |
+      curl \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d '{"policies":["trousseau-transit-ro"],"ttl":"0s","explicit_max_ttl":"0s","period":"0s","display_name":"","num_uses":0,"renewable":true,"type":"service","entity_alias":""}' \
+      https://vault.{{ dnsDomain }}/v1/auth/token/create | jq ".auth.client_token" | tr -d '"'
+  register: TROUSSEAU_TRANSIT_TOKEN
+
+- name: output token 
+  debug:
+    msg: "{{ TROUSSEAU_TRANSIT_TOKEN.stdout }}"
+
+- set_fact:
+    TROUSSEAU_TRANSIT_TOKEN: "{{ TROUSSEAU_TRANSIT_TOKEN.stdout }}"
+
+- name: create KVv1 policy for trousseau config 
+  shell:
+    cmd: |
+      curl \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d @.kube/trousseau/conf/trousseau_kv_policy.json \
+      https://vault.{{ dnsDomain }}/v1/sys/policies/acl/trousseau-kv-ro
+
+- name: enable KVv1
+  shell:
+    cmd: |
+      curl \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d '{"type":"kv","description":"","config":{"options":null,"default_lease_ttl":"0s","max_lease_ttl":"0s","force_no_cache":false},"local":false,"seal_wrap":false,"external_entropy_access":false,"options":null}' \
+      https://vault.{{ dnsDomain }}/v1/sys/mounts/secret
+
+
+- name: inject trousseau config
+  shell:
+    cmd: |
+      curl \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d '{"transitkeyname":"trousseau-kms","ttl":"30s","vaultaddress":"https://vault.{{ dnsDomain }}","vaulttoken":"{{ TROUSSEAU_TRANSIT_TOKEN }}" }' \
+      https://vault.{{ dnsDomain }}/v1/secret/trousseau/config
+
+- name: inject trousseau config
+  shell:
+    cmd: |
+      curl \
+      -X PUT \
+      -H "X-Vault-Request: true" \
+      -H "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      -d '{"bound_service_account_names":"trousseau-vault-auth","bound_service_account_namespaces":"kube-system","policies":"trousseau-kv-ro","ttl":"24h"}' \
+      https://vault.{{ dnsDomain }}/v1/auth/kubernetes/role/trousseau
+
+

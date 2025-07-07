@@ -1,0 +1,9 @@
+- name: Copy key file for local k8s repo
+  copy:
+    src: "{{ kubeadm_gpg }}"
+    dest: /tmp
+  become: true
+
+- name: Add key for local k8s repo
+  shell: apt-key add /tmp/{{ kubeadm_gpg }}
+  become: true

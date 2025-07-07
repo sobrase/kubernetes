@@ -1,0 +1,39 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: {{ cluster_token }}
+  ttl: "0"
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: {{ guest_ip }}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: unix:///var/run/crio/crio.sock
+  imagePullPolicy: IfNotPresent
+  name: {{ groups['masters'][0] }}
+  taints: null
+certificateKey: {{ certificateKey }}
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+apiServer:
+  timeoutForControlPlane: 1m0s
+certificatesDir: /etc/kubernetes/pki
+clusterName: {{ cluster_name }}
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: rgy01.johto.tdmc/kubernetes
+kubernetesVersion: {{ kube_version.split('-') | first }}
+controlPlaneEndpoint: {{ controlPlaneEndpoint }}
+networking:
+  dnsDomain: {{ dnsDomain }}
+  serviceSubnet: {{ serviceSubnet }}
+  podSubnet: {{ podSubnet }}
+scheduler: {}

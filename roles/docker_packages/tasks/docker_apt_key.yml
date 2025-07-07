@@ -1,0 +1,9 @@
+- name: Copy key file for local docker repo
+  copy:
+    src: apt_docker.gpg
+    dest: /tmp
+  become: true
+
+- name: Add key for local docker repo
+  shell: apt-key add /tmp/apt_docker.gpg
+  become: true

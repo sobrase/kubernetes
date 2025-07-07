@@ -1,0 +1,58 @@
+
+- name: "create .kube/observability/opentelemetry directory"
+  file:
+    path: ".kube/observability/opentelemetry"
+    state: directory
+
+
+- name: "create .kube/observability/dporometheus directory"
+  file:
+    path: ".kube/observability/prometheus"
+    state: directory
+
+- name: Copy opentelemetry helm chart (takes some time)
+  ansible.posix.synchronize:
+    src: observability/opentelemetry/opentelemetry-operator
+    dest: "{{ansible_env.HOME}}/.kube/observability/opentelemetry"
+
+- name: Generate values template file for opentelemetry
+  template: 
+    src: "opentelemetry/opentelemetry-operator_values.yaml.j2"
+    dest: "{{ansible_env.HOME}}/.kube/observability/opentelemetry/opentelemetry-operator/values.yaml"
+
+- name: Deploy opentelemetry-operator chart
+  kubernetes.core.helm:
+    name: opentelemetry-operator
+    kubeconfig: .kube/config
+    chart_ref: .kube/observability/opentelemetry/opentelemetry-operator
+    release_namespace: "{{ observability.backend_namespace }}"
+    create_namespace: true
+    atomic: true # delete l'install si ca fail
+    wait: true # attends la fin de l'installation avant de passer à la tache suivante
+  become: true
+
+
+
+- name: Generate values template file for opentelemetry
+  template: 
+    src: "{{ item }}.j2"
+    dest: ".kube/observability/{{ item }}"
+  with_items:
+    - prometheus/prometheus_operator_bundle.yaml
+    - prometheus/test_node_exporter.yml
+    - prometheus/test_prometheus.yml
+
+- name: Deploy prometheus
+  shell: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/prometheus/{{ item }} --validate='strict' && sleep 10
+  register: create_result
+  until: create_result.rc == 0
+  retries: 6
+  delay: 60
+  ignore_errors: true
+  with_items:
+    - prometheus/prometheus_operator_bundle.yaml
+    - prometheus/test_node_exporter.yml
+    - prometheus/test_prometheus.yml
+  notify: "restart not ready kube-system pods" #look a handler/main.yml

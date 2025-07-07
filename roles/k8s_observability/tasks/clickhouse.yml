@@ -1,0 +1,31 @@
+
+- name: Install clickhouse
+  block: 
+
+    - name: "create .kube/observability/clickhouse directory"
+      file:
+        path: ".kube/observability/clickhouse"
+        state: directory
+
+    - name: Copy clickhouse helm chart (takes some time)
+      ansible.posix.synchronize:
+        src: observability/clickhouse
+        dest: "{{ansible_env.HOME}}/.kube/observability/clickhouse/clickhouse_chart"
+
+    - name: Generate values template file for clickhouse
+      template: 
+        src: "clickhouse_values.yaml.j2"
+        dest: .kube/observability/clickhouse/clickhouse_chart/values.yaml
+
+    - name: Deploy clickhouse chart 
+      kubernetes.core.helm: 
+        name: clickhouse 
+        kubeconfig: .kube/config
+        chart_ref: .kube/observability/clickhouse/clickhouse_chart
+        release_namespace: "{{ observability.clickhouse.namespace }}"
+        create_namespace: true
+        atomic: true # delete l'install si ca fail
+        wait: true # attends la fin de l'installation avant de passer à la tache suivante
+      become: true
+
+  when: observability.clickhouse.enable == 'true'

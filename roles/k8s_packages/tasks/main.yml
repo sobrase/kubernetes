@@ -1,0 +1,5 @@
+---
+
+- { include: k8s_repos_apt_key.yml}
+- { include: k8s_repository.yml}
+- { include: k8s-install.yml}

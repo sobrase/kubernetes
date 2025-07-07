@@ -1,0 +1,24 @@
+{{- if .Values.corootCE.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "coroot.fullname" . }}
+  {{- with .Values.corootCE.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "coroot.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.corootCE.service.type }}
+  ports:
+    - port: {{ .Values.corootCE.service.port }}
+      {{- if .Values.corootCE.service.nodePort }}
+      nodePort: {{ .Values.corootCE.service.nodePort }}
+      {{- end }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "coroot.selectorLabels" . | nindent 4 }}
+{{- end -}}

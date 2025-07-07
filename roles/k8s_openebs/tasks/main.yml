@@ -1,0 +1,139 @@
+- name: Allow ssh to master1
+  block:
+
+    #keygen obligatoire pour pourvoir utiliser le module synchronize de ansible
+    #le module synchronize est obligatoire car module copy est trèèèèès long (+5min) vs 2 sec pour synchronize 
+
+    - name: ssh keygen
+      shell: >
+        ssh-keygen -q -b 2048 -t rsa -N "" -C "creatingSSH" -f ~/.ssh/id_rsa_ansible
+        creates="~/.ssh/id_rsa_ansible"
+      delegate_to: localhost
+
+    - name: copy the keygen
+      copy:
+        dest: "/tmp/ansible-id_rsa.pub"
+        src:  "~/.ssh/id_rsa_ansible.pub"
+    
+    - name: create ssh dir
+      ansible.builtin.file:
+        path: "~/.ssh"
+        state: directory
+
+    - name: add authorized key
+      shell: "cat /tmp/ansible-id_rsa.pub >> ~/.ssh/authorized_keys"
+
+    # - name: untaint control plane nodes in order to run openebs on them
+    #   shell: "kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
+    #   ignore_errors: yes
+  rescue: 
+    - name: Uninstall ssh keys due to problem in execution 
+      debug:
+        msg: "Uninstalling  Uninstall ssh keys due to problem in execution"
+        # à faire 
+
+
+- name: Install and configure openebs
+  block:
+
+    - name: install mandatory iscsi packages for openebs cstor and rsync 
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - open-iscsi
+        - rsync
+      become: true
+      delegate_to: "{{item}}"
+      loop: "{{ groups['all'] }}"
+
+    - name: enable iscsi service
+      ansible.builtin.service:
+        name: iscsid
+        enabled: yes
+      delegate_to: "{{item}}"
+      loop: "{{ groups['all'] }}"
+      become: true
+
+    - name: "create openebs directory"
+      file:
+        path: ".kube/openebs"
+        state: directory
+
+    - name: Copy openebs helm chart (takes some time)
+      ansible.posix.synchronize:
+        src: openebs_chart
+        dest: "{{ansible_env.HOME}}/.kube/openebs/"
+
+    - name: Generate values template file for openebs
+      template: 
+        src: "values.yaml.j2"
+        dest: .kube/openebs/openebs_chart/values.yaml
+        
+    # à faire: rajouter une condition si ca existe deja alors passer, ou alors tout reinstaller
+
+    - name: Deploy openebs operator chart 
+      kubernetes.core.helm: 
+        name: openebs
+        kubeconfig: .kube/config
+        chart_ref: .kube/openebs/openebs_chart
+        release_namespace: "{{ openebs.namespace }}"
+        create_namespace: true
+        atomic: true # delete l'in/
+      loop: "{{ cmdvalue.results }}"
+      loop_control:
+        label: "{{item.item}}"   
+
+    - name: "register disks"
+      set_fact:
+        default_cstor_disks: "{{ default_cstor_disks|default({}) | combine ( {item.item: item.stdout | split ('\n') } ) }}"
+      loop: "{{ cmdvalue.results }}"
+
+    - name: "disks info 2"
+      debug:
+        msg: "{{ default_cstor_disks }}"
+
+    - name: Generate default cstor pool file
+      template: 
+        src: "default_cstor_pool.yml.j2"
+        dest: .kube/openebs/default_cstor_pool.yml
+    # - name: register pool disks 
+    #   set_fact:
+    #     default_cstor_disks: "{{ default_cstor_disks|default({}) | combine(  )" 
+    - name: deploy default cstor pool
+      shell: |
+        kubectl apply -f .kube/openebs/default_cstor_pool.yml
+
+    - name: tag the storageclass as default storage class 
+      shell: |
+        kubectl patch storageclass cstor-csi-default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+  rescue: 
+    - name: OEBS debug info
+      debug:
+        msg: "Uninstalling openebs completely due to deployment problem. Try to rerun the openebs role"
+
+    - name: uninstall mandatory iscsi packages for openebs cstor
+      apt:
+        name: "{{ packages }}"
+        state: absent
+      vars:
+        packages:
+        - open-iscsi
+      become: true
+      delegate_to: "{{item}}"
+      loop: "{{ groups['all'] }}"
+
+    - name: Remove openebs operator chart 
+      kubernetes.core.helm:
+        name: openebs
+        kubeconfig: .kube/config
+        release_namespace: "{{ openebs.namespace }}"
+        state: absent
+        wait: true # attends la fin de la desinstallation avant de passer à la tache suivante
+      become: true
+
+    - name: Openebs uninstall
+      script: uninstall_openebs.sh
+      ignore_errors: True
+

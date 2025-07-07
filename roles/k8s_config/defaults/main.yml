@@ -1,0 +1,4 @@
+certificates_autorities:
+  - phoenix_ca.crt
+  - JohtoCA.crt
+#  - IdicIssuer.crt

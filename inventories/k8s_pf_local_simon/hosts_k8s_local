@@ -1,0 +1,8 @@
+[masters]
+master1.k8s.local guest_hostname='master1.k8s.local'
+
+[workers]
+worker1.k8s.local guest_hostname='worker1.k8s.local'
+worker2.k8s.local guest_hostname='worker2.k8s.local'
+
+

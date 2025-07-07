@@ -1,0 +1,37 @@
+---
+- name: Check if raw source directory exists
+  lineinfile:
+    state: absent
+    path: /etc/fstab
+    regexp: "^{{ raw_src }}"
+  check_mode: true
+  changed_when: false
+  register: check
+  become: true
+
+- name: Define raw source mount if undefined
+  lineinfile:
+    state: present
+    path: /etc/fstab
+    line: "{{ raw_src }} {{ raw_mount_point }} nfs nfsvers=4,ro   0   0"
+  when: check.found == 0
+  become: true
+
+- name: Check if directory exists
+  stat:
+    path: "{{ raw_mount_point }}"
+  register: raw_mount_res
+  become: true
+
+- name: Create raw mount directory
+  file:
+    path: "{{ raw_mount_point }}"
+    state: directory
+    mode: '0444'
+  become: true
+  when: raw_mount_res.stat.exists == false
+
+- name: Mount raw directory
+  shell: mount {{ raw_mount_point }}
+  become: true
+  when: raw_mount_res.stat.exists == false

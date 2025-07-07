@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "node-agent.fullname" . }}
+  labels:
+    {{- include "node-agent.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "node-agent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "node-agent.selectorLabels" . | nindent 8 }}
+        app: coroot-node-agent
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '80'
+        {{- if .Values.podAnnotations }}
+        {{- toYaml .Values.podAnnotations | nindent 4 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      tolerations:
+        - operator: Exists
+      priorityClassName: {{ .Values.priorityClassName }}
+      hostPID: true
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command: ["coroot-node-agent", "--cgroupfs-root", "/host/sys/fs/cgroup"]
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          {{- if .Values.otel.tracesEndpoint }}
+            - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+              value: "{{ .Values.otel.tracesEndpoint }}"
+          {{- end }}
+          {{- with .Values.env }}
+          {{- . | toYaml | nindent 12 }}
+          {{- end }}
+          ports:
+            - containerPort: 80
+              name: http
+          securityContext:
+            privileged: true
+            runAsGroup: 0
+            runAUser: 0
+
+          volumeMounts:
+            - mountPath: /host/sys/fs/cgroup
+              name: cgroupfs
+              readOnly: true
+            - mountPath: /sys/kernel/debug
+              name: debugfs
+              readOnly: false
+            - mountPath: /var/run/crio
+              name: criosocket
+              readOnly: false
+      volumes:
+        - hostPath:
+            path: /sys/fs/cgroup
+          name: cgroupfs
+        - hostPath:
+            path: /sys/kernel/debug
+          name: debugfs
+        - hostPath:
+            path: /var/run/crio
+          name: criosocket

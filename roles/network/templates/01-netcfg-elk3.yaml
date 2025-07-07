@@ -1,0 +1,31 @@
+# This file describes the network interfaces available on your system
+# For more information, see netplan(5).
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eno3:
+      addresses: [ 192.168.40.30/24 ]
+#      gateway4: 192.168.40.254
+      nameservers:
+        addresses: [ 192.168.0.2 ]
+    enp130s0f0:
+       dhcp4: no
+
+    enp130s0f1:
+       dhcp4: no        
+  bonds:
+    bond0:
+      interfaces:
+            - enp130s0f0
+            - enp130s0f1
+      parameters:
+#         mode: balance-rr            
+         mode: 802.3ad
+         mii-monitor-interval: 100 
+      mtu: 9000       
+  vlans:
+    bond0.910:
+      id: 910
+      link: bond0
+      dhcp4: yes

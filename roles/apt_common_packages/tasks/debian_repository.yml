@@ -1,0 +1,19 @@
+---
+
+- name: remove sources.list file 
+  ansible.builtin.file:
+    path: /etc/apt/sources.list
+    state: absent
+  become: true
+
+
+
+- name: Copy sources.list for Debian
+  copy:
+    src: sources.list
+    dest: /etc/apt/sources.list
+    owner: "{{ ansible_become_user }}"
+    mode: u=rx,g=r,o=r
+  become: true
+
+

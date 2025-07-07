@@ -1,0 +1,20 @@
+
+- name: Copy certificate autorities certs
+  copy:
+    src: "{{ item }}"
+    dest: '/usr/local/share/ca-certificates/{{ item }}'
+  become: true
+  with_items: "{{ certificates_autorities }}"
+
+
+# - name: remove sources.list file 
+#   ansible.builtin.file:
+#     path: '/usr/local/share/ca-certificates/{{ item }}'
+#     state: absent
+#   become: true
+#   with_items: "{{ certificates_autorities }}"
+
+
+- name: Update trusted ca 
+  shell : /usr/sbin/update-ca-certificates
+  become: true

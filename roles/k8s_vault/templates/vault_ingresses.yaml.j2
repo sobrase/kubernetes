@@ -1,0 +1,57 @@
+---
+# Source: vault/templates/server-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vault-ui
+  namespace: vault
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.org/ssl-services: "vault-ui"
+spec:
+  tls:
+    - hosts:
+        - "vault-ui.{{ dnsDomain }}"
+      secretName: vault-tls-ingress
+  ingressClassName: nginx
+  rules:
+    - host: "vault-ui.{{ dnsDomain }}"
+      http:
+        paths:
+
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vault-ui
+                port:
+                  number: 8200
+---
+---
+# Source: vault/templates/server-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vault
+  namespace: vault
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.org/ssl-services: "vault-active"
+spec:
+  tls:
+    - hosts:
+        - "vault.{{ dnsDomain }}"
+      secretName: vault-tls-ingress
+  ingressClassName: nginx
+  rules:
+    - host: "vault.{{ dnsDomain }}"
+      http:
+        paths:
+
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vault-active
+                port:
+                  number: 8200

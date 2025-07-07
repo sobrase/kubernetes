@@ -1,0 +1,152 @@
+- name: read vault token
+  shell: cat /tmp/vault_token
+  register: VAULT_TOKEN
+
+- set_fact:
+    VAULT_TOKEN: "{{ VAULT_TOKEN.stdout }}"
+
+- name: create intermediate_pki_config dir
+  file:
+    path: ".kube/vault/intermediate_pki_config"
+    state: directory 
+
+- name: create tmp dir for signing request build
+  file:
+    path: ".kube/vault/intermediate_pki_config/tmp"
+    state: directory
+
+- name: Push vault json config files
+  template:
+    src: "pki_cluster/{{ item }}.j2"
+    dest: ".kube/vault/intermediate_pki_config/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - 'pki_engine.json'
+    - 'cluster_role.json'
+    - 'auth_kubernetes.json'
+    - 'intermediate_csr.json'
+    - 'urls.json'
+    - 'cluster_policy.json'
+
+- name: deploy intermediate pki vault engine
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data @.kube/vault/intermediate_pki_config/pki_engine.json \
+    https://vault.{{ dnsDomain }}/v1/sys/mounts/pki_{{ cluster_name }}
+
+- name: Create role cluster issuer
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data @.kube/vault/intermediate_pki_config/cluster_role.json \
+    https://vault.{{ dnsDomain }}/v1/pki_{{ cluster_name }}/roles/{{ cluster_name }}
+
+- name: Create urls for cluster issuer
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data @.kube/vault/intermediate_pki_config/urls.json \
+    https://vault.{{ dnsDomain }}/v1/pki_{{ cluster_name }}/config/urls
+
+- name: Create intermediate CSR for the root pki
+  shell:
+    cmd: |
+      curl -sS \
+      --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      --request POST \
+      --data @.kube/vault/intermediate_pki_config/intermediate_csr.json \
+      https://vault.{{ dnsDomain }}/v1/pki_{{ cluster_name }}/intermediate/generate/exported \
+      | jq ".data.csr" | tr -d '"' \
+      | tee .kube/vault/intermediate_pki_config/tmp/csr 
+      sed -i "s/.*-----BEGIN CERTIFICATE REQUEST/-----BEGIN CERTIFICATE REQUEST/" .kube/vault/intermediate_pki_config/tmp/csr 
+
+- name: create the sign request for cluster intermediate ca
+  shell: 
+    cmd: |
+      tee .kube/vault/intermediate_pki_config/tmp/sign_req.json <<EOF
+      {
+        "csr": "$(cat .kube/vault/intermediate_pki_config/tmp/csr)",
+        "format": "pem_bundle",
+        "ttl": "46800h",
+        "private_key_format": "der",
+        "organization": "IDIC",
+        "country": "US",
+        "ou": "IDIC",
+        "common_name": "IDICIssuer_{{ cluster_name }}"
+      }
+      EOF
+
+
+- name: sign the intermediate ca
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ vault_cloud_tmp_tkn }}" \
+    --request POST \
+    --data @.kube/vault/intermediate_pki_config/tmp/sign_req.json \
+    https://{{ vault_rootpki_endpoint }}:8200/v1/pki-IdicRootCA/root/sign-intermediate | jq ".data.certificate" | tr -d '"' | tee .kube/vault/intermediate_pki_config/tmp/cert
+
+- name: create intermediate ca json
+  shell: 
+    cmd: |
+      tee .kube/vault/intermediate_pki_config/tmp/cert.json <<EOF
+
+      {
+        "certificate": "$(cat .kube/vault/intermediate_pki_config/tmp/cert)"
+      }
+      EOF
+
+- name: set the intermediate ca
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data @.kube/vault/intermediate_pki_config/tmp/cert.json \
+    https://vault.{{ dnsDomain }}/v1/pki_{{ cluster_name }}/intermediate/set-signed
+
+- name: set the policy cluster_pki
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data @.kube/vault/intermediate_pki_config/cluster_policy.json \
+    https://vault.{{ dnsDomain }}/v1/sys/policy/cert_manager_policy
+
+- name: set kubernetes auth backend
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data '{"type": "kubernetes"}' \
+    https://vault.{{ dnsDomain }}/v1/sys/auth/kubernetes
+
+- name: create the kubernetes auth json
+  shell:
+    cmd: |
+      tee .kube/vault/intermediate_pki_config/tmp/kube_auth_conf.json <<EOF
+      { 
+        "kubernetes_host": "https://10.10.0.1:443", 
+        "kubernetes_ca_cert": "$(awk '{printf "%s\\n", $0}' /etc/kubernetes/pki/ca.crt)"
+      }
+      EOF
+  
+- name: set the kubernetes auth
+  shell:
+    cmd: |
+      curl -sS \
+      --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+      --request POST \
+      --data @.kube/vault/intermediate_pki_config/tmp/kube_auth_conf.json \
+      https://vault.{{ dnsDomain }}/v1/auth/kubernetes/config
+
+- name: set the kubernetes auth role
+  shell: |
+    curl -sS \
+    --header "X-Vault-Token: {{ VAULT_TOKEN }}" \
+    --request POST \
+    --data '{ "bound_service_account_names": ["*"], "bound_service_account_namespaces": ["*"], "policies": ["cert_manager_policy"] }' \
+    https://vault.{{ dnsDomain }}/v1/auth/kubernetes/role/cluster-issuer

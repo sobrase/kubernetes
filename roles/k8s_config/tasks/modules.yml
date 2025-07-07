@@ -1,0 +1,34 @@
+
+- name: set modules
+  community.general.modprobe:
+    name: "{{ item.name }}"
+    state: present
+  with_items:
+    - { name: overlay }
+    - { name: br_netfilter }
+  become: true
+
+
+- name: set modules permanently 
+  shell: "grep -qxF '{{ item.name }}' /etc/modules || echo {{ item.name }} >> /etc/modules"
+  with_items:
+    - { name: overlay }
+    - { name: br_netfilter }
+  become: true
+
+- name: Disable swappiness and pass bridged IPv4 traffic to iptable's chains
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  with_items:
+    - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { name: 'net.ipv4.ip_forward', value: '1' }
+    - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+  become: true
+
+
+- name: apply sysctl conf
+  shell: "/sbin/sysctl --system"
+  become: true
+

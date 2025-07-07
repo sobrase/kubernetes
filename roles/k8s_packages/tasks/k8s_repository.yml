@@ -1,0 +1,17 @@
+  - name: Add kubeadm apt repository
+    apt_repository:
+      repo: deb {{ repo_k8s_kubeadm }}
+      state: present
+    become: true
+
+  - name: Add cri-o apt repository
+    apt_repository:
+      repo: deb {{ repo_k8s_crio_main }}
+      state: present
+    become: true
+
+  - name: Add cri-o 1.26 apt repository
+    apt_repository:
+      repo: deb {{ repo_k8s_crio }}
+      state: present
+    become: true

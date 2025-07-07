@@ -1,0 +1,28 @@
+[masters]
+kmsr01.johto.tdmc guest_ip='192.168.16.21'
+kmsr02.johto.tdmc 
+kmsr03.johto.tdmc 
+
+[workers]
+kwkr01.johto.tdmc 
+kwkr02.johto.tdmc 
+kwkr03.johto.tdmc 
+kwkr04.johto.tdmc 
+kwkr05.johto.tdmc 
+kwkr06.johto.tdmc 
+kwkr07.johto.tdmc 
+kwkr08.johto.tdmc 
+kwkr09.johto.tdmc 
+kwkr10.johto.tdmc 
+kwkr11.johto.tdmc 
+kwkr12.johto.tdmc 
+kwkr13.johto.tdmc 
+kwkr14.johto.tdmc 
+kwkr15.johto.tdmc 
+kwkr16.johto.tdmc 
+kwkr17.johto.tdmc 
+kwkr18.johto.tdmc 
+kwkr19.johto.tdmc 
+kwkr20.johto.tdmc 
+#[servers]
+#servers.johto.tdmc guest_hostname='servers.k8s.dev.lan'

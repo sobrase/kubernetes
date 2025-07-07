@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ benchmark.elastic.namespace }}
+
+---
+
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  namespace: {{ benchmark.elastic.namespace }}
+  name: elasticsearch
+  annotations:
+    eck.k8s.elastic.co/downward-node-labels: "topology.kubernetes.io/zone"
+spec:
+  version: 8.6.2
+  image: rgy01.johto.tdmc/bigfoot/public/elastic/elasticsearch:8.6.2
+  auth:
+    fileRealm:
+    - secretName: secret-basic-auth
+  nodeSets:
+  - name: masters
+    count: 3
+    config: # correspond au fichier de config elastic.yml
+      node.roles: ["master"]
+      xpack.monitoring.collection.enabled: true
+      #xpack.ml.enabled: true
+      #node.remote_cluster_client: false
+    podTemplate:
+      spec:
+        volumes:
+        - name: elasticsearch-data
+          emptyDir: {}
+        nodeSelector:
+          node-role.kubernetes.io/worker: elastic_worker
+
+  - name: data
+    count: 3
+    config: # contient le fichier de configuration de elasticsearch
+      node.roles: ["data", "ingest", "ml", "transform"]
+      node.attr.zone: ${ZONE}
+      cluster.routing.allocation.awareness.attributes: k8s_node_name, zone
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ZONE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['topology.kubernetes.io/zone']
+        topologySpreadConstraints:
+          - maxSkew: 2
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                elasticsearch.k8s.elastic.co/cluster-name: elasticsearch
+                elasticsearch.k8s.elastic.co/statefulset-name: elasticsearch-es-data
+        nodeSelector:
+          node-role.kubernetes.io/worker: elastic_worker
+    volumeClaimTemplates:
+      - metadata:
+          name: elasticsearch-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ benchmark.elastic.storage }}
+          storageClassName: elastic-local-devices # il faut mettre volumeBindingMode:WaitForFirstConsumer 
+
+# pour attribuer des zones aux noeuds: kubectl label nodes master3.devtgl.dev.lan topology.kubernetes.io/zone="R2"
+# pour verifier : kubectl get nodes --show-labels=true
+# Attention, pour pouvoir utiliser les ZONES de elastic, 
+
+# Attention, pour elastic il faut vm.max_map_count=262144
+# on peut changer avec sysctl -w vm.max_map_count=262144 pour le faire de maniere TEMPORAIRE
+# Sinon on modifier le fichier /etc/sysctl.conf
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: {{ benchmark.elastic.namespace }}
+  name: secret-basic-auth
+type: kubernetes.io/basic-auth
+stringData: 
+  username: administrator
+  password: administrator
+  roles: kibana_admin,monitoring_user,superuser,ingest_admin
+
+# attention le mdp doit etre de 8 caracteres ou plus
+
+---
+
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata: 
+  namespace: {{ benchmark.elastic.namespace }}
+  name: kibana
+spec:
+  config: 
+    monitoring.ui.ccs.enabled: false
+  version: 8.6.2
+  image: rgy01.johto.tdmc/bigfoot/public/elastic/kibana:8.6.2
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch
+    namespace: {{ benchmark.elastic.namespace }}
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+
+{% raw %}
+# pour obtenir le mdp de l'utilisateur elastic: 
+#  kubectl get secret -n elastic-test "elasticsearch-es-elastic-user" -o go-template='{{ .data.elastic | base64decode }}'
+{% endraw %}
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: 
+  namespace: {{ benchmark.elastic.namespace }}
+  name: kibana-benchmark-ingress
+  annotations:
+    kubernetes.io/ingess.class: nginx
+
+spec:
+  rules:
+  - host: kibana-benchmark.{{dnsDomain}}
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: kibana-kb-http
+            port: 
+              number: 5601
+
+
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: elastic-local-devices
+  annotations:
+    openebs.io/cas-type: local
+    cas.openebs.io/config: |
+      - name: StorageType
+        value: device
+      - name: FSType
+        value: xfs
+      - name: BlockDeviceSelectors
+        data:
+          openebs.io/block-device-tag: elasticsearch
+provisioner: openebs.io/local
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+
+{% raw %}
+
+#pour le bloc device tagging, on peut le faire via kubectl, pour tager des block device, afin de pouvoir en selectionner dynamiquement 
+# on peut voir les block devices avec kubectl get bd
+# et rajouter un tag avec kubectl label bd (-n openebs) blockdevice-XXXXXXXXXXXXXXXX openebs.io/block-device-tag=elastic par exemple
+
+# si ca marche pas (executable not found in $PATH), c'est qu'il faut installer le iscsi initiator, et xfsprogs
+# apt install open-iscsi; systemctl open-isci restart
+
+# si jamais ca foire et que tout est cassé: kubectl patch -n openebs -p '{"metadata":{"finalizers":null} }' --type=merge $(kubectl get bdc -n openebs -o name)
+# sinon y'a un script sur github : https://github.com/openebs/openebs-docs/issues/900
+
+# Si erreur  Warning  FailedMount  20m (x9 over 23m)  kubelet            MountVolume.MountDevice failed for volume "pvc-f23ca860-8448-460b-9273-efe53480b1a7" : local: failed to mount device /dev/disk/by-path/pci-0000:03:00.0-scsi-0:0:1:0-part1 at /var/lib/kubelet/plugins/kubernetes.io/local-volume/mounts/pvc-f23ca860-8448-460b-9273-efe53480b1a7 (fstype: xfs), error format of disk "/dev/disk/by-path/pci-0000:03:00.0-scsi-0:0:1:0-part1" failed: type:("xfs") target:("/var/lib/kubelet/plugins/kubernetes.io/local-volume/mounts/pvc-f23ca860-8448-460b-9273-efe53480b1a7") options:("defaults") errcode:(executable file not found in $PATH) output:()
+# Alors installer xfsprogs
+
+{% endraw %}

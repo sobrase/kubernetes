@@ -1,0 +1,9 @@
+---
+- { include: users.yml, tags: always }
+- { include: sudo.yml, tags: always }
+- { include: ntp.yml, tags: ntp }
+#- { include: ssh.yml, tags: ssh }
+- { include: snmp.yml, tags: snmp }
+- { include: nfsv4.yml, tags: nfs }
+- { include: lang_locale.yml, tags: lang }
+- { include: xfs-docker.yml, tags: xfs }

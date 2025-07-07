@@ -1,0 +1,52 @@
+- name: create cert-manager dir
+  file:
+    path: ".kube/cert-manager"
+    state: directory 
+
+- name: load base64 idic root ca cert
+  shell:
+    cmd:  openssl base64 -in .kube/JohtoCA.crt  | tr -d '\n'
+  register: idic_rootca_b64_cmd
+
+- set_fact:
+    idic_rootca_b64: "{{ idic_rootca_b64_cmd.stdout }}"
+
+- name: Push cert-manager files to Home directory
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/cert-manager/{{ item }}"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+  with_items:
+    - cert-manager.yaml
+    - vault-issuer.yaml
+
+- name: Create cert-manager namespace
+  shell: kubectl --kubeconfig=.kube/config create ns cert-manager && sleep 10
+  ignore_errors: true
+
+- name: Deploy cert-manager into cluster
+  shell: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/cert-manager/{{ item }} && sleep 10
+  register: create_result
+  until: create_result.rc == 0
+  retries: 2
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - cert-manager.yaml
+    - vault-issuer.yaml
+
+#- name: Deploy vault issuer into cluster
+#  shell: |
+#    kubectl --kubeconfig=.kube/config \
+#        apply -f .kube/cert-manager/{{ item }} && sleep 10
+#  register: create_result
+#  until: create_result.rc == 0
+#  retries: 2
+#  delay: 2
+#  ignore_errors: true
+#  with_items:
+#    - vault-issuer.yaml

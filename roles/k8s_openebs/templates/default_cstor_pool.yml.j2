@@ -1,0 +1,42 @@
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+  name: cstor-default-disk-pool
+  namespace: openebs
+spec:
+  pools:
+{% for master,disks in default_cstor_disks.items() %}
+    - nodeSelector: 
+        kubernetes.io/hostname: "{{ master }}"
+      dataRaidGroups:
+        - blockDevices:
+          {% for disk in disks -%}
+            - blockDeviceName: "{{ disk }}"
+          {%- endfor %}
+      
+      poolConfig:
+        dataRaidGroupType: "{{openebs.cstor.default_pool.default_pool_data_type}}"
+        tolerations: 
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+          - key: node-role.kubernetes.io/etcd
+            operator: Exists
+            effect: NoExecute
+
+{% endfor %}
+
+---
+
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: cstor-csi-default
+provisioner: cstor.csi.openebs.io
+allowVolumeExpansion: true
+parameters:
+  cas-type: cstor
+  cstorPoolCluster: cstor-default-disk-pool
+  replicaCount: "{{openebs.cstor.default_pool.default_storage_class_replicacount}}"
+
+

@@ -1,0 +1,58 @@
+---
+
+- name: Install a list of packages needed for drivers compilation
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - linux-compiler-gcc-10-x86
+    - linux-kbuild-5.10
+    - make
+    - build-essential
+  become: true
+
+- name: Copy Ice driver for intel e810c
+  copy:
+    src: /mnt/share/admin/drivers/ethernet_intel_e810c/ice-1.9.11.tar.gz
+    dest: /tmp/ice-1.9.11.tar.gz
+  become: true
+
+- name: Copy linux-headers common appropriate version
+  copy:
+    src: /mnt/share/admin/drivers/ethernet_intel_e810c/linux-headers-5.10.0-10-common_5.10.84-1_all.deb
+    dest: /tmp/linux-headers-5.10.0-10-common_5.10.84-1_all.deb
+  become: true
+
+- name: Copy linux-headers appropriate version
+  copy:
+    src: /mnt/share/admin/drivers/ethernet_intel_e810c/linux-headers-5.10.0-10-amd64_5.10.84-1_amd64.deb
+    dest: /tmp/linux-headers-5.10.0-10-amd64_5.10.84-1_amd64.deb
+  become: true
+
+
+- name: Install linux headers common deb
+  shell: export PATH=/usr/sbin:$PATH && dpkg -i /tmp/linux-headers-5.10.0-10-common_5.10.84-1_all.deb
+  become: true
+
+- name: Install linux headers deb
+  shell: export PATH=/usr/sbin:$PATH && dpkg -i /tmp/linux-headers-5.10.0-10-amd64_5.10.84-1_amd64.deb
+  become: true
+
+
+- name: Detar archive driver
+  shell: cd /tmp && tar xvzf ice-1.9.11.tar.gz
+  become: true
+
+- name: Install intel driver
+  shell: cd /tmp/ice-1.9.11/src && export PATH=/usr/bin:$PATH && make install
+  become: true
+  async: 600
+  poll: 10
+  register: installer_result
+
+- debug: 
+    msg: "{{ installer_result.stdout_lines }}"
+
+- name: load new driver
+  shell: export PATH=/usr/sbin:$PATH && rmmod ice; modprobe ice
+  become: true

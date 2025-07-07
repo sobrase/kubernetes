@@ -1,0 +1,29 @@
+
+- name: Push crio.conf file
+  template:
+    src: "crio.conf.j2"
+    dest: "/etc/crio/crio.conf"
+    owner: "{{ ansible_become_user }}"
+    group: "{{ ansible_become_user }}"
+  become: true
+
+- name: Push registries.conf file
+  template:
+    src: "registries.conf.j2"
+    dest: "/etc/containers/registries.conf"
+    owner: "{{ ansible_become_user }}"
+    group: "{{ ansible_become_user }}"
+  become: true
+
+- name: remove bridge cni
+  file:
+    path: /etc/cni/net.d/100-crio-bridge.conflist
+    state: absent
+  become: true
+  
+- name: Restart service crio 
+  systemd:
+    name: crio
+    state: restarted
+  become: true
+

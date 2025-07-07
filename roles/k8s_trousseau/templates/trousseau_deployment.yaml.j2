@@ -1,0 +1,171 @@
+{% raw %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trousseau-vault-agent-config
+  namespace: kube-system
+data:
+  vault-agent-config.hcl: |
+    exit_after_auth = true
+    pid_file = "/home/vault/pidfile"
+    auto_auth {
+        method "kubernetes" {
+            mount_path = "auth/kubernetes"
+            config = {
+                role = "trousseau"
+            }
+        }
+        sink "file" {
+            config = {
+                path = "/home/vault/.vault-token"
+            }
+        }
+    }
+
+    template {
+    destination = "/etc/secrets/config.yaml"
+    contents = <<EOT
+    {{- with secret "secret/trousseau/config" }}
+    ---
+    provider: vault
+    vault:
+      keynames:
+      - {{ .Data.transitkeyname }}
+      address: {{ .Data.vaultaddress }}
+      token: {{ .Data.vaulttoken }}
+    {{ end }}
+    EOT
+    }
+{% endraw %}
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: trousseau-kms-provider
+  namespace: kube-system
+  labels:
+    tier: control-plane
+    app: trousseau-kms-provider
+spec:
+  selector:
+    matchLabels:
+      name: trousseau-kms-provider
+  template:
+    metadata:
+      labels:
+        name: trousseau-kms-provider
+    spec:
+      serviceAccountName: trousseau-vault-auth
+      priorityClassName: system-cluster-critical
+      hostNetwork: true
+      initContainers:
+        - name: vault-agent
+          image: rgy01.johto.tdmc/kubernetes/vault:1.9.4                         #
+          securityContext:
+            privileged: true
+          args:
+            - agent
+            - -config=/etc/vault/vault-agent-config.hcl
+            - -log-level=debug
+          env:
+            - name: VAULT_ADDR
+              value: https://vault.{{ dnsDomain }}      #
+            # - name: VAULT_LOG_LEVEL
+            #   value: "debug"
+            - name: VAULT_SKIP_VERIFY
+              value: "false"
+            - name: VAULT_CLIENT_TIMEOUT
+              value: "300s"
+            - name: VAULT_CACERT
+              value: "/etc/vaulttls/vault.ca"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/vault
+            - name: vault-tls-config
+              mountPath: /etc/vaulttls
+            - name: shared-data
+              mountPath: /etc/secrets
+      containers:
+        - name: trousseau-kms-provider
+          image: rgy01.johto.tdmc/kubernetes/ghcr.io/ondat/trousseau:v1.1.3 #
+          imagePullPolicy: Always
+          env:
+            #- name: VAULT_NAMESPACE            #
+            #  value: vault
+            - name: VAULT_SKIP_VERIFY           #
+              value: "false"
+            - name: VAULT_CACERT
+              value: "/etc/vaulttls/vault.ca"
+          args:
+            - -v=5
+            - --config-file-path=/opt/trousseau/config.yaml
+            - --listen-addr=unix:///opt/trousseau-kms/vaultkms.socket                            # [REQUIRED] Version of the key to use
+            - --zap-encoder=json
+            - --v=3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsUser: 0
+          ports:
+            - containerPort: 8787
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8787
+            failureThreshold: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          volumeMounts:
+            - name: trousseau-kms
+              mountPath: /opt/trousseau-kms
+            - name: shared-data
+              mountPath: /opt/trousseau/
+            - name: vault-tls-config
+              mountPath: /etc/vaulttls
+              readOnly: true
+#            - name: userconfig-vault-server-tls
+#              mountPath: /vault/userconfig/vault-server-tls
+#              readOnly: true
+      volumes:
+        - name: trousseau-kms
+          hostPath:
+            path: /opt/trousseau-kms
+        - configMap:
+            items:
+              - key: vault-agent-config.hcl
+                path: vault-agent-config.hcl
+            name: trousseau-vault-agent-config
+          name: config
+        - name: vault-tls-config
+          secret:
+            defaultMode: 420
+            secretName: vault-tls
+        - emptyDir: {}
+          name: shared-data
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: Exists
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/etcd
+          operator: Exists
+          effect: NoExecute
+      

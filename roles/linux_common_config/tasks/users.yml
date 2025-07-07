@@ -1,0 +1,13 @@
+
+- name: Add user "dsb" 
+  user:
+    name: "dsb"
+    shell: /bin/bash
+  become: true
+
+- name: Add user "atm" 
+  user:
+    name: "atm"
+    shell: /bin/bash
+  become: true
+    

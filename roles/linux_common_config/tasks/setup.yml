@@ -1,0 +1,11 @@
+
+
+- set_fact :
+    ansible_become_method: su
+    apt_docker_version_os: "{{ apt_docker_version }}~debian-bullseye"      
+  when: ansible_distribution == "Debian"
+
+- set_fact :
+    ansible_become_method: sudo
+    apt_docker_version_os: "{{ apt_docker_version }}~ubuntu-focal"   
+  when: ansible_distribution == "Ubuntu"

@@ -1,0 +1,20 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation 
+metadata:
+  name: demo-instru
+spec: 
+  exporter:
+    endpoint: http://test-collector:4317
+    #endpoint: http://test-collector.default.svc.devtgl2.dev.lan:4317
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.25"
+  java:
+    image: rgy01.johto.tdmc/kubernetes/ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:1.29.0
+
+#kubectl patch statefulset/elasticsearch-es-data -p '{"spec":{"template": {"metadata": {"annotations": {"sidecar.opentelemetry.io/inject": "true"}}}}}'
+#kubectl patch statefulset/elasticsearch-es-data -p '{"spec":{"template": {"metadata": {"annotations": {"instrumentation.opentelemetry.io/inject-java": "default/demo-instru"}}}}}'

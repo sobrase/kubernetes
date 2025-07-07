@@ -1,0 +1,80 @@
+---
+
+# Ansible 
+guest_user_pass: generic
+guest_root_pass: generic
+ansible_python_interpreter: /usr/bin/python3
+ansible_user: user
+ansible_become_user: root
+ansible_password: "{{ guest_user_pass }}"
+ansible_become_password: "{{ guest_root_pass }}"
+ansible_become_method: su
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+# Common
+ntp_server_ip: '10.192.2.1'
+
+# Kubernetes
+cluster_name: cluster-dev
+container_runtime: crio
+kube_version: 1.26.3-00
+controlPlaneEndpoint: proxy.k8s.dev.lan:6443
+vault_rootpki_endpoint: vault.dev.lan
+vault_cloud_tmp_tkn: hvs.vomyc81HjZTQ5aaYYJniLkL1
+vault_autounseal_token: hvs.CAESIITuOYhPR1pCTq7pxFJevOxPffk-hpR9vlJ7-ks4CCs4Gh4KHGh2cy5rc3pLZlNhM0JaaTF4TUJxYzJMUEFHMlM
+registry_k8s: 'rgy01.johto.tdmc'
+pause_img_version: 3.9
+cluster_token: abcdef.0123456789abcdef
+certificateKey: 76e20fb6cbfeef9fbe0931bfe851281fb482b23efaa98e856aba4877574df077
+repo_k8s_kubeadm: http://repos.k8s.dev.lan:8080/kubeadm/  kubernetes-xenial main
+repo_k8s_crio_main: http://repos.k8s.dev.lan:8080/cri-o/ .-- main
+repo_k8s_crio: http://repos.k8s.dev.lan:8080/cri-o_1.26/ .-- main
+kubeadm_gpg: repo_k8s_dev_lan.gpg
+serviceSubnet: "10.10.0.0/16"
+podSubnet: "10.11.0.0/16"
+dnsDomain: k8s.dev.lan
+
+# 1.8.x feature: --feature-gates SelfHosting=true
+#init_opts: ""
+#
+## Any other additional opts you want to add..
+##kubeadm_opts: ""
+### For example:
+### kubeadm_opts: '--apiserver-cert-extra-sans "k8s.domain.com,kubernetes.domain.com"'
+##
+##service_cidr: "10.96.0.0/12"
+##pod_network_cidr: "10.244.0.0/16"
+##
+### Network implementation('flannel', 'calico', 'canal')
+##network: calico
+#
+## Change this to an appropriate interface, preferably a private network.
+## For example, on DigitalOcean, you would use eth1 as that is the default private network interface.
+#network_interface: ""
+#
+#enable_dashboard: yes
+#
+## A list of insecure registries you might need to define
+## insecure_registries: []
+#insecure_registries: ['rgy01.johto.tdmc']
+#
+#systemd_dir: /lib/systemd/system
+#system_env_dir: /etc/sysconfig
+#network_dir: /etc/kubernetes/network
+#kubeadmin_config: /etc/kubernetes/admin.conf
+#kube_addon_dir: /etc/kubernetes/addon
+#
+## Additional feature to install
+#additional_features:
+#  helm: false
+#  metallb: false
+#  healthcheck: false
+#
+## temporary directory used by additional features
+#tmp_dir: /tmp/kubeadm-ansible-files
+#
+## Container runtimes ('containerd', 'crio')
+
+#
+## helm helm version
+#helm_version: "v2.17.0"

@@ -1,0 +1,27 @@
+
+- name: Add user "user" to sudo
+  lineinfile:
+    path: /etc/sudoers.d/user
+    line: 'user ALL=(ALL) NOPASSWD: ALL'
+    state: present
+    mode: 0440
+    create: yes
+  become: true
+
+- name: Add user "dsb" to sudo
+  lineinfile:
+    path: /etc/sudoers.d/dsb
+    line: 'dsb ALL=(ALL) NOPASSWD: ALL'
+    state: present
+    mode: 0440
+    create: yes
+  become: true
+
+- name: Add user "atm" to sudo
+  lineinfile:
+    path: /etc/sudoers.d/atm
+    line: 'atm ALL=(ALL) NOPASSWD: ALL'
+    state: present
+    mode: 0440
+    create: yes
+  become: true

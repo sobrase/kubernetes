@@ -1,0 +1,57 @@
+---
+
+- name: Install a list of packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - linux-compiler-gcc-10-x86
+    - linux-kbuild-5.10
+  become: true
+
+- name: Copy driver Mellanox
+  copy:
+    src: /mnt/share/admin/drivers/ethernet_mellanox_hpe/MLNX_OFED_LINUX-5.6-2.0.9.0-debian11.2-x86_64.tgz
+    dest: /tmp/MLNX_OFED_LINUX-5.6-2.0.9.0-debian11.2-x86_64.tgz
+  become: true
+
+- name: Copy linux-headers common appropriate version
+  copy:
+    src: /mnt/share/admin/drivers/ethernet_mellanox_hpe/linux-headers-5.10.0-10-common_5.10.84-1_all.deb
+    dest: /tmp/linux-headers-5.10.0-10-common_5.10.84-1_all.deb
+  become: true
+
+- name: Copy linux-headers appropriate version
+  copy:
+    src: /mnt/share/admin/drivers/ethernet_mellanox_hpe/linux-headers-5.10.0-10-amd64_5.10.84-1_amd64.deb
+    dest: /tmp/linux-headers-5.10.0-10-amd64_5.10.84-1_amd64.deb
+  become: true
+
+
+- name: install linux headers common deb
+  shell: export PATH=/usr/sbin:$PATH && dpkg -i /tmp/linux-headers-5.10.0-10-common_5.10.84-1_all.deb
+  become: true
+
+- name: install linux headers deb
+  shell: export PATH=/usr/sbin:$PATH && dpkg -i /tmp/linux-headers-5.10.0-10-amd64_5.10.84-1_amd64.deb
+  become: true
+
+
+- name: Detar archive driver
+  shell: cd /tmp && tar xvzf MLNX_OFED_LINUX-5.6-2.0.9.0-debian11.2-x86_64.tgz
+  become: true
+
+- name: Launch Mellanox driver installer ...long task around 5 min...wait
+  shell: cd /tmp/MLNX_OFED_LINUX-5.6-2.0.9.0-debian11.2-x86_64 && export PATH=/usr/sbin:$PATH && ./mlnxofedinstall --force
+  become: true
+  async: 600
+  poll: 10
+  register: installer_result
+
+- debug: 
+    msg: "{{ installer_result.stdout_lines }}"
+
+- name: load new driver
+  shell: /etc/init.d/openibd restart
+  when: "'Installation passed successfully' in installer_result.stdout"
+  become: true

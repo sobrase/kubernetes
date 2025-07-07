@@ -1,0 +1,98 @@
+---
+
+#  - name: Copy ca ssh key pub
+#    copy:
+#      src: ca.pub
+#      dest: /etc/ssh
+#    become: true
+#
+#  - name: remove tmp key on ansible host
+#    delegate_to: localhost
+#    file:
+#      path: '/tmp/{{inventory_hostname}}'
+#      state: absent
+#
+#  - name: get host ssh pub key
+#    fetch:
+#      src: /etc/ssh/ssh_host_vault.pub
+#      dest: /tmp/{{inventory_hostname}}/ssh_host_vault.pub
+#      flat: yes
+#    become: true
+#
+#  - name: connect to vault
+#    delegate_to: localhost
+#    run_once: true
+#    script:
+#      cmd: '/usr/local/bin/vault login -address=https://vault.cloud.lan -method=oidc'
+
+#  - name: ask vault to ssh host ssh key public
+#    delegate_to: localhost
+#    script:
+#      cmd: '/usr/local/bin/vault write -address=https://vault.cloud.lan -field="signed_key" ssh/sign/host key_type=ed25519 key_id={{inventory_hostname}} cert_type=host public_key=@/tmp/{{inventory_hostname}}/ssh_host_vault.pub > /tmp/{{inventory_hostname}}/ssh_host_vault-cert.pub'
+#
+#  - name: copy certs to remote hosts
+#    copy:
+#      src: /tmp/{{inventory_hostname}}/ssh_host_vault-cert.pub
+#      dest: /etc/ssh/ssh_host_vault-cert.pub
+#      mode: 0640
+#    become: true
+
+  - name: Generate OpenSSH keypair ed25519 
+    openssh_keypair:
+      type: "ed25519"
+      path: /etc/ssh/ssh_host_vault
+    become: true
+
+  - name: get ssh host CA pubkey
+    uri:
+      url: http://vault.dev.lan:8200/v1/ssh-users-ca/config/ca
+      headers: 
+        X-Vault-Token: "{{vault_token}}"
+      method: GET
+    register: CA_pubkey
+
+  - name: Write ca ssh key pub
+    copy:
+      dest: /etc/ssh/ca.pub
+      content: "{{CA_pubkey.json.data.public_key}}"
+    become: true
+
+  - name: GET ssh_host_pub_key
+    shell: cat /etc/ssh/ssh_host_vault.pub
+    register: ssh_host_pub_key
+
+  - name: sign ssh host pubkey
+    uri:
+      url: http://vault.dev.lan:8200/v1/ssh-hosts-ca/sign/hosts
+      method: POST
+      headers: 
+        X-Vault-Token: "{{vault_token}}"
+      body_format: json
+      body:
+        public_key: "{{ssh_host_pub_key.stdout}}"
+        cert_type: "host"
+    register: host_cert
+
+  - name: debug
+    debug:
+      msg:
+        - "{{host_cert}}"
+
+  - name: Write ssh host cert
+    copy:
+      dest: /etc/ssh/ssh_host_vault-cert.pub
+      content: "{{host_cert.json.data.signed_key}}"
+    become: true
+
+  - name: copy sshd_config to remote hosts
+    copy:
+      src: sshd_config
+      dest: /etc/ssh
+      mode: 0640
+    become: true    
+
+  - name: restart sshd
+    ansible.builtin.systemd:
+      name: sshd
+      state: restarted
+    become: true 

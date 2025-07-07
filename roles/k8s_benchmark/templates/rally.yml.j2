@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job #par defaut ne lance que 1 pod, mais on peut décider d'en lancer plusieurs
+metadata:
+  name: rally
+  namespace: {{ benchmark.elastic.namespace }}
+spec:
+  template:
+    metadata:
+      namespace: {{ benchmark.elastic.namespace }}
+      name: rally
+    spec:
+      containers:
+      - name: esrally
+        command:
+        - bash
+        - -c
+        - |
+          tar -xf rally-track-data-{{benchmark.esrally.tracks}}.tar && 
+          ELASTIC_PASS=$(cat /rally/elastic_secret/elastic) && 
+          CLIENT_OPTIONS="use_ssl:true,verify_certs:false,basic_auth_user:'elastic',basic_auth_password:'$ELASTIC_PASS'" && 
+          esrally race --client-options=$CLIENT_OPTIONS --track={{benchmark.esrally.tracks}} --pipeline=benchmark-only --target-hosts=elasticsearch-es-http:9200 --report-file=/tmp/benchmark_report_{{benchmark.esrally.tracks}}.csv --report-format=csv
+        image: rgy01.johto.tdmc/kubernetes/elastic/rally:2.8.0
+        resources:
+          requests:
+            memory: 8Gi #important de set ca car sinon crash (state unknown pour kubernetes) à cause de OOM il est important d'avoir assez de ephemeral storage aussi
+            cpu: 3
+        volumeMounts:
+        - name: elastic-user-secret
+          mountPath: /rally/elastic_secret
+        - name: report
+          mountPath: /tmp
+        - name: track
+          mountPath: /rally/rally-track-data-{{benchmark.esrally.tracks}}.tar
+      volumes:
+      - name: report
+        hostPath:
+          path: /benchmark/benchmark_results
+          type: DirectoryOrCreate
+      - name: track 
+        hostPath:
+          path: /benchmark/rally-track-data-{{benchmark.esrally.tracks}}.tar
+      - name: elastic-user-secret 
+        secret:
+          secretName: elasticsearch-es-elastic-user
+      restartPolicy: Never
+  backoffLimit: 2

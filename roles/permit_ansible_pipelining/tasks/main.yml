@@ -1,0 +1,9 @@
+---
+- name: disable requiretty sudoers optio
+  lineinfile:
+    path: /etc/sudoers
+    line: 'Defaults !requiretty'
+    state: present
+    mode: 0440
+    create: yes
+  become: true

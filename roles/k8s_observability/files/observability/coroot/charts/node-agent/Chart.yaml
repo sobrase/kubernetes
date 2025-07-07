@@ -1,0 +1,7 @@
+apiVersion: v2
+appVersion: 1.10.0
+description: A Prometheus exporter based on eBPF that gathers comprehensive container
+  metrics.
+name: node-agent
+type: application
+version: 0.1.39

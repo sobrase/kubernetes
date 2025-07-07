@@ -1,0 +1,36 @@
+
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+
+# The primary network interface
+auto eno3
+iface eno3 inet static
+  address  {{ srv_ip_pf }}/24
+  gateway 192.168.40.254
+  nameserver 192.168.0.2
+  metric 100  
+
+auto bond0
+iface bond0 inet manual
+bond-slaves enp3s0f0 enp3s0f1
+bond-mode 802.3ad
+bond-miimon 100
+bond-lacp-rate 1
+mtu 9000
+metric 0  
+
+auto enp3s0f0
+iface enp3s0f0 inet manual
+bond-master bond0
+
+auto enp3s0f1
+iface enp3s0f1 inet manual
+bond-master bond0
+
+auto bond0.915
+iface bond0.915 inet dhcp
+vlan-raw-device bond0
+

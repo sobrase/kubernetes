@@ -1,0 +1,36 @@
+
+- name: Install a list of packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - console-data
+    - nfs-common
+    - ifenslave
+    - gnupg
+    - locales
+    - python3-yaml # for use of helm through ansible, a changer car peut etre installé que sur master1 au lieu de tous les nodes
+    - vim # is not mandatory
+    - xfsprogs # mandatory pour openebs
+    - clustershell # utile pour transformations (essayer nodeset -e worker[1-16])
+  become: true
+
+
+- name: Copy helm binary to master node
+  delegate_to: "{{ groups['masters'][0] }}"
+  copy:
+    src: helm
+    dest: /usr/bin/helm
+    owner: "{{ ansible_become_user }}"
+    mode: u=rx,g=r,o=r
+  become: true
+
+# Hold linux kernel version to prevent update because mellanox drivers attached to specific versions
+- dpkg_selections:
+    name : "{{ item.pkg }}"
+    selection: hold
+  become: true
+  with_items:
+    - { pkg: linux-image-amd64 }
+    - { pkg: "linux-image-{{ ansible_kernel }}" }
+    - { pkg: base-files }

@@ -1,0 +1,52 @@
+#- name: untaint control plane
+#  shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+
+- name: create calico dir
+  file:
+    path: ".kube/calico"
+    state: directory 
+
+- name: Push manifests file
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/calico/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    #- calicoctl-kubedatastore.yaml
+    - calico.yaml
+
+- name: Deploy calico and calicoctl   
+  shell: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/calico/{{ item }} --validate='strict' && sleep 10
+  register: create_result
+  until: create_result.rc == 0
+  retries: 6
+  delay: 60
+  ignore_errors: true
+  with_items:
+    - calico.yaml
+    #- calicoctl-kubedatastore.yaml
+  notify: "restart not ready kube-system pods" #look a handler/main.yml
+
+
+- name: Copy calicoctl binary
+  copy:
+    src: calicoctl
+    dest: /usr/bin/calicoctl
+    owner: "{{ ansible_become_user }}"
+    mode: u=rx,g=r,o=r
+  become: true
+
+
+
+#- name: Create calicoctl aliase
+#  lineinfile:
+#    path: /home/{{ansible_user}}/.bashrc
+#    line: "alias calicoctl='kubectl exec -i -n kube-system calicoctl -- /calicoctl'"
+#    owner: "{{ansible_user}}"
+#    regexp: '^alias calicoctl="kubectl exec -i -n kube-system calicoctl -- /calicoctl"'
+#    state: present
+#    insertafter: EOF
+#    create: True

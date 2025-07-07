@@ -1,0 +1,3 @@
+{
+"policy": "path \"transit/encrypt/trousseau-kms\" { capabilities = [\"update\"] }\npath \"transit/decrypt/trousseau-kms\" { capabilities = [\"update\"] }"
+}

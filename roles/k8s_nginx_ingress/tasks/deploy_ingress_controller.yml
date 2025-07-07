@@ -1,0 +1,77 @@
+
+- name: create nginx-ingress dir
+  file:
+    path: ".kube/nginx-ingress"
+    state: directory 
+
+- name: Copy  nginx-ingress .yaml to Home directory
+  copy:
+    src: "{{item.path}}"
+    dest: ".kube/nginx-ingress"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+  with_items:
+    - { path: 'common' }
+    - { path: 'daemon-set' }
+    - { path: 'deployment' }
+    - { path: 'rbac' }
+    - { path: 'nginx-ingress.{{ dnsDomain }}.crt' }
+    - { path: 'nginx-ingress.{{ dnsDomain }}.key' }
+
+- name: Push nginx-ingress manifest files
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/nginx-ingress/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - nginx_ingress_daemonset.yaml
+
+- name: create nginx-ingress namespace
+  command: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/{{item.file}}
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - { file: 'nginx-ingress/common/ns-and-sa.yaml' }
+
+- name: Create nginx-ingress-tls secret
+  shell: |
+    kubectl --kubeconfig=.kube/config -n nginx-ingress create secret tls nginx-ingress-tls \
+    --key=.kube/nginx-ingress/nginx-ingress.{{ dnsDomain }}.key  \
+    --cert=.kube/nginx-ingress/nginx-ingress.{{ dnsDomain }}.crt \
+    && sleep 10
+  ignore_errors: true
+
+- name: Deploy kubernetes ingress into cluster
+  command: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/{{item.file}}
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - { file: 'nginx-ingress/rbac/rbac.yaml' }
+    #- { file: 'nginx-ingress/rbac/ap-rbac.yaml' }
+    #- { file: 'nginx-ingress/rbac/apdos-rbac.yaml' }
+    - { file: 'nginx-ingress/common/nginx-config.yaml' }
+    - { file: 'nginx-ingress/common/ingress-class.yaml' }
+    - { file: 'nginx-ingress/common/crds/k8s.nginx.org_virtualservers.yaml' }
+    - { file: 'nginx-ingress/common/crds/k8s.nginx.org_virtualserverroutes.yaml' }
+    - { file: 'nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml' }
+    - { file: 'nginx-ingress/common/crds/k8s.nginx.org_policies.yaml' }
+    - { file: 'nginx-ingress/common/crds/k8s.nginx.org_globalconfigurations.yaml' }
+    #- { file: 'nginx-ingress/common/crds/appprotect.f5.com_aplogconfs.yaml' }   
+    #- { file: 'nginx-ingress/common/crds/appprotect.f5.com_appolicies.yaml' }   
+    #- { file: 'nginx-ingress/common/crds/appprotect.f5.com_usersigs.yaml' }   
+    #- { file: 'nginx-ingress/common/crds/appprotect.f5.com_apdoslogconfs.yaml' }   
+    #- { file: 'nginx-ingress/common/crds/appprotect.f5.com_apdospoliciy.yaml' }   
+    #- { file: 'nginx-ingress/common/crds/appprotect.f5.com_apdosprotectedresources.yaml' }   
+    - { file: 'nginx-ingress/nginx_ingress_daemonset.yaml' }

@@ -1,0 +1,10 @@
+[masters]
+master1.ci.dev.lan ansible_host=master1.ci.dev.lan guest_hostname='master1.ci.dev.lan'
+master2.ci.dev.lan ansible_host=master2.ci.dev.lan guest_hostname='master2.ci.dev.lan'
+master3.ci.dev.lan ansible_host=master3.ci.dev.lan guest_hostname='master3.ci.dev.lan'
+
+[workers]
+worker1.ci.dev.lan ansible_host=worker1.ci.dev.lan guest_hostname='worker1.ci.dev.lan'
+worker2.ci.dev.lan ansible_host=worker2.ci.dev.lan guest_hostname='worker2.ci.dev.lan'
+worker3.ci.dev.lan ansible_host=worker3.ci.dev.lan guest_hostname='worker3.ci.dev.lan'
+

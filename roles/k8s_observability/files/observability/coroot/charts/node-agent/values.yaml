@@ -1,0 +1,25 @@
+image:
+  repository: rgy01.johto.tdmc/kubernetes/ghcr.io/coroot/coroot-node-agent
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+priorityClassName: ""
+
+resources:
+  requests:
+    cpu: "300m"
+    memory: "500Mi"
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+
+env: []
+
+otel:
+  tracesEndpoint: ""

@@ -1,0 +1,24 @@
+---
+
+- name: Init cluster if needed
+  include_tasks: init_first_master.yml
+  run_once: yes
+
+- name: Enable and check kubelet service
+  systemd:
+    name: kubelet
+    daemon_reload: yes
+    state: started
+    enabled: yes
+  register: started_kubelet
+  become: true
+
+- name: "Copy config file"
+  fetch:
+    src: /etc/kubernetes/admin.conf 
+    dest: "{{ lookup('env', 'HOME') }}/admin.conf"
+    flat: yes
+  run_once: yes
+  ignore_errors: yes
+  become: true
+

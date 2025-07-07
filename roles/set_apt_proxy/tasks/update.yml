@@ -1,0 +1,6 @@
+- name: Update APT
+  apt:
+    update_cache: yes
+  become: true
+  ignore_errors: yes
+

@@ -1,0 +1,35 @@
+- name: Install pyroscope 
+  block: 
+
+    - name: "create .kube/observability/pyroscope directory"
+      file:
+        path: ".kube/observability/pyroscope"
+        state: directory
+
+    - name: Copy pyroscope helm chart (takes some time)
+      ansible.posix.synchronize:
+        src: observability/pyroscope
+        dest: "{{ansible_env.HOME}}/.kube/observability/pyroscope/pyroscope_chart"
+
+    - name: Generate values template file for pyroscope
+      template: 
+        src: "pyroscope_values.yaml.j2"
+        dest: .kube/observability/pyroscope/pyroscope_chart/values.yaml
+
+    - name: Generate values template file for pyroscope-agent
+      template: 
+        src: "grafana-agent_values.yaml.j2"
+        dest: .kube/observability/pyroscope/pyroscope_chart/charts/grafana-agent/values.yaml
+
+    - name: Deploy pyroscope chart
+      kubernetes.core.helm:
+        name: pyroscope
+        kubeconfig: .kube/config
+        chart_ref: .kube/observability/pyroscope/pyroscope_chart
+        release_namespace: "{{ observability.pyroscope.namespace }}"
+        create_namespace: true
+        atomic: true # delete l'install si ca fail
+        wait: true # attends la fin de l'installation avant de passer à la tache suivante
+      become: true
+
+  when: observability.pyroscope.enable == 'true'

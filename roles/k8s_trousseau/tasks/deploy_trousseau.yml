@@ -1,0 +1,58 @@
+- name: Render trousseau deployment yaml file
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/trousseau/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - 'trousseau_deployment.yaml'
+
+- name: Deploy troussault service accounts into cluster
+  shell: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/trousseau/{{ item }} && sleep 20
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - 'trousseau_deployment.yaml'
+
+- name: create trousseau dir
+  file:
+    path: "/etc/kubernetes/enc/"
+    state: directory 
+  delegate_to: "{{item}}"
+  loop: "{{ groups['masters'] }}"
+  become: true
+
+- name: Copy trousseau encryption file to Home directory
+  copy:
+    src: 'encryption_configuration_kube_api_server.yml'
+    dest: "/etc/kubernetes/enc/enc.yaml"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+  delegate_to: "{{item}}"
+  loop: "{{ groups['masters'] }}"
+  become: true
+
+- name: test if kube api server already has encryption
+  shell: |
+    cat /etc/kubernetes/manifests/kube-apiserver.yaml
+  register: has_encryption
+  become: true
+
+- name: Modify kube-apiserver.yaml
+  shell: |
+    sed -i '/volumes:/a \  - hostPath:\n      path: /etc/kubernetes/enc\n      type: DirectoryOrCreate\n    name: k8s-enc' /etc/kubernetes/manifests/kube-apiserver.yaml && \
+    sed -i '/volumeMounts:/a \    - mountPath: /etc/kubernetes/enc\n      name: k8s-enc\n      readOnly: true' /etc/kubernetes/manifests/kube-apiserver.yaml && \
+    sed -i '/volumes:/a \  - hostPath:\n      path: /opt/trousseau-kms\n      type: DirectoryOrCreate\n    name: trousseau-kms' /etc/kubernetes/manifests/kube-apiserver.yaml && \
+    sed -i '/volumeMounts:/a \    - mountPath: /opt/trousseau-kms\n      name: trousseau-kms' /etc/kubernetes/manifests/kube-apiserver.yaml && \
+    sed -i '/- kube-apiserver/a \    - --encryption-provider-config=/etc/kubernetes/enc/enc.yaml ' /etc/kubernetes/manifests/kube-apiserver.yaml  && sleep 30
+  delegate_to: "{{item}}"
+  loop: "{{ groups['masters'] }}"
+  become: true
+  when: has_encryption.stdout.find('encryption-provider-config') == -1
+

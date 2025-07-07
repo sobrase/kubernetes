@@ -1,0 +1,21 @@
+global:
+  image:
+    registries: rgy01.johto.tdmc/kubernetes
+loki:
+  image: 
+    tag:
+  commonConfig:
+    replication_factor: 1 
+  storage:
+    type: 'filesystem'
+singleBinary:
+  replicas: 1
+monitoring:
+  dashboards:
+    enabled: false
+enterprise:
+  enabled: false
+  tokengen:
+    enabled: false
+tableManager:
+  enabled: false      

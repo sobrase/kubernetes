@@ -1,0 +1,22 @@
+
+- name: wait for pods to become ready
+  shell: "kubectl wait pods --all --namespace kube-system --for=condition=Ready --all=true --timeout=5s 2>&1 | grep 'timed out waiting for' | awk '{print $NF}'"
+  register: control_plane_pods_not_ready
+  listen: "restart not ready kube-system pods"
+
+- name: output pods that are not ready 
+  debug:
+    msg: "{{ control_plane_pods_not_ready.stdout_lines }}"
+  listen: "restart not ready kube-system pods"
+
+- name: kill pods that are not ready 
+  shell: "kubectl delete --namespace kube-system {{ control_plane_pods_not_ready.stdout | replace('\n',' ') }}"
+  when: control_plane_pods_not_ready.stdout | length >0
+  listen: "restart not ready kube-system pods"
+
+- name: wait for pods to become ready again
+  shell: "kubectl wait pods --all --namespace kube-system --for=condition=Ready --all=true --timeout=5s 2>&1 | grep 'timed out waiting for' | awk '{print $NF}'"
+  register: control_plane_pods_not_ready2
+  failed_when: control_plane_pods_not_ready2.stdout | length >0
+  when: control_plane_pods_not_ready.stdout | length >0
+  listen: "restart not ready kube-system pods"

@@ -1,0 +1,22 @@
+---
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force --cri-socket=unix:///var/run/crio/crio.sock"
+  become: true
+
+- name: Generate join token
+  shell: |
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && \
+    kubeadm token create --print-join-command
+  register: kubeadm_join_cmd
+  delegate_to: "{{ groups['masters'][0] }}"
+  become: true
+
+- set_fact:
+    kubeadm_join: "{{ kubeadm_join_cmd.stdout }}"
+
+- name: Run kubeadm join control plane
+  shell: |
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && \
+    {{ kubeadm_join }} --cri-socket=unix:///var/run/crio/crio.sock --control-plane --certificate-key {{ certificateKey }}
+  become: true

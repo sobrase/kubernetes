@@ -1,0 +1,61 @@
+---
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force --cri-socket=/var/run/{{ container_runtime }}/{{ container_runtime }}.sock"
+  become: true
+
+- name: Push kubeadm.yaml file
+  template:
+    src: "kubeadm.yaml.j2"
+    dest: "/root/kubeadm.yaml"
+    owner: "{{ ansible_become_user }}"
+    group: "{{ ansible_become_user }}"
+  become: true
+
+- name: Init kubernetes cluster
+  block: 
+  - name: Init Kubernetes cluster with default values
+    shell: export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && kubeadm init --config /root/kubeadm.yaml --upload-certs
+    args:
+      executable: /bin/bash
+    # See: https://github.com/jetstack/cert-manager/issues/2640 with using kubeadm + calico + cert-manager
+    #environment:
+    #  no_proxy: "$no_proxy,.svc,.svc.cluster.local"
+    register: init_cluster
+    become: true
+    when: calico.mode == "default"
+
+  - name: Init Kubernetes cluster without kube-proxy
+    shell: export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && kubeadm init --skip-phases=addon/kube-proxy --config /root/kubeadm.yaml --upload-certs
+    args:
+      executable: /bin/bash
+    # See: https://github.com/jetstack/cert-manager/issues/2640 with using kubeadm + calico + cert-manager
+    #environment:
+    #  no_proxy: "$no_proxy,.svc,.svc.cluster.local"
+    register: init_cluster
+    become: true
+    when: calico.mode == "ebpf"
+  
+  rescue: 
+    - name: Print debug information
+      ansible.builtin.debug: 
+        msg: 'Error while trying to init the cluster, verify that a cluster is not already running'
+
+  
+
+
+- name: Create Kubernetes config directory
+  when: init_cluster is succeeded
+  file:
+    path: ".kube/"
+    state: directory
+
+- name: Copy admin.conf to Home directory
+  when: init_cluster is succeeded
+  copy:
+    src: "/etc/kubernetes/admin.conf"
+    dest: ".kube/config"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+    remote_src: true
+  become: true

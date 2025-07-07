@@ -1,0 +1,8 @@
+[masters]
+master1.kub001.dev.lan guest_hostname='master1.kub001.dev.lan' guest_ip='10.192.2.56'
+master2.kub001.dev.lan guest_hostname='master2.kub001.dev.lan'
+
+[workers]
+worker1.kub001.dev.lan guest_hostname='worker1.kub001.dev.lan'
+worker2.kub001.dev.lan guest_hostname='worker2.kub001.dev.lan'
+worker3.kub001.dev.lan guest_hostname='worker3.kub001.dev.lan'

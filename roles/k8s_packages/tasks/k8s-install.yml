@@ -1,0 +1,38 @@
+- name: Install a list of k8s packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - cri-o
+    - cri-o-runc
+    - kubeadm={{ kube_version }}
+    - kubelet={{ kube_version }}
+    - kubectl={{ kube_version }}
+    - jq # for vault scripts
+    - curl # could be avoided with ansible >=2.11.0
+    - parted #necessary for local persistent volume isolation
+  become: true
+  when: container_runtime == "crio"
+
+- name: Enable and check crio service
+  systemd:
+    name: crio
+    daemon_reload: yes
+    state: started
+    enabled: yes
+  register: started_kubelet
+  become: true
+  when: container_runtime == "crio"
+
+# Hold k8s packages version to prevent update 
+- dpkg_selections:
+    name : "{{ item }}"
+    selection: hold
+  become: true
+  with_items:
+    - cri-o
+    - cri-o-runc
+    - kubeadm
+    - kubelet
+    - kubectl
+  when: container_runtime == "crio"

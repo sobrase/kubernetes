@@ -1,0 +1,25 @@
+- name: create dashboard dir
+  file:
+    path: ".kube/dashboard"
+    state: directory 
+
+- name: Push dashboard manifest files
+  template:
+    src: "{{ item }}.j2"
+    dest: ".kube/dashboard/{{ item }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - dashboard.yaml
+
+- name: Deploy kubernetes dashboard into cluster
+  command: |
+    kubectl --kubeconfig=.kube/config \
+        apply -f .kube/dashboard/{{ item }}
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5 
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - dashboard.yaml

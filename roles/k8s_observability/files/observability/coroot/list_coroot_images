@@ -1,0 +1,175 @@
+charts/pyroscope/values.yaml:image:
+charts/pyroscope/values.yaml-  # -- image to use for deploying
+charts/pyroscope/values.yaml-  repository: pyroscope/pyroscope
+charts/pyroscope/values.yaml-  # -- Image pull policy
+charts/pyroscope/values.yaml:#   image: busybox
+charts/pyroscope/values.yaml-#   - sh
+charts/pyroscope/values.yaml-#   - -c
+charts/pyroscope/values.yaml-#   - chmod 777 /var/lib/pyroscope && chown -R 101:101 /var/lib/pyroscope
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml:  image: busybox:latest
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-initContainers:
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-  - name: test
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-    command:
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml:    image: "{{ .Values.global.image }}"
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-    volumeMounts:
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-      - name: test
+charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-        mountPath: /test
+charts/opentelemetry-collector/values.yaml:image:
+charts/opentelemetry-collector/values.yaml-  # If you want to use the core image `otel/opentelemetry-collector`, you also need to change `command.name` value to `otelcol`.
+charts/opentelemetry-collector/values.yaml-  repository: otel/opentelemetry-collector-contrib
+charts/opentelemetry-collector/values.yaml-  pullPolicy: IfNotPresent
+charts/opentelemetry-collector/values.yaml:#     image: busybox:latest
+charts/opentelemetry-collector/values.yaml-#     volumeMounts:
+charts/opentelemetry-collector/values.yaml-#       - name: test
+charts/opentelemetry-collector/values.yaml-#         mountPath: /test
+charts/opentelemetry-collector/values.yaml:#     image: busybox:latest
+charts/opentelemetry-collector/values.yaml-#     command:
+charts/opentelemetry-collector/values.yaml-#       - cp
+charts/opentelemetry-collector/values.yaml-#     args:
+charts/opentelemetry-collector/values.yaml:#    image: busybox:latest
+charts/opentelemetry-collector/values.yaml-#    command:
+charts/opentelemetry-collector/values.yaml-#      - sh
+charts/opentelemetry-collector/values.yaml-#      - '-c'
+charts/pyroscope-ebpf/values.yaml:image:
+charts/pyroscope-ebpf/values.yaml-  # -- image to use for deploying
+charts/pyroscope-ebpf/values.yaml-  repository: pyroscope/pyroscope
+charts/pyroscope-ebpf/values.yaml-  # -- Image pull policy
+charts/node-agent/values.yaml:image:
+charts/node-agent/values.yaml-  repository: ghcr.io/coroot/coroot-node-agent
+charts/node-agent/values.yaml-  pullPolicy: IfNotPresent
+charts/node-agent/values.yaml-  tag: ""
+charts/clickhouse/charts/zookeeper/values.yaml:image:
+charts/clickhouse/charts/zookeeper/values.yaml-  registry: docker.io
+charts/clickhouse/charts/zookeeper/values.yaml-  repository: bitnami/zookeeper
+charts/clickhouse/charts/zookeeper/values.yaml-  tag: 3.8.1-debian-11-r15
+charts/clickhouse/charts/zookeeper/values.yaml:##     image: your-image
+charts/clickhouse/charts/zookeeper/values.yaml-##     imagePullPolicy: Always
+charts/clickhouse/charts/zookeeper/values.yaml-##     ports:
+charts/clickhouse/charts/zookeeper/values.yaml-##       - name: portname
+charts/clickhouse/charts/zookeeper/values.yaml:##     image: your-image
+charts/clickhouse/charts/zookeeper/values.yaml-##     imagePullPolicy: Always
+charts/clickhouse/charts/zookeeper/values.yaml-##     ports:
+charts/clickhouse/charts/zookeeper/values.yaml-##       - name: portname
+charts/clickhouse/charts/zookeeper/values.yaml:  image:
+charts/clickhouse/charts/zookeeper/values.yaml-    registry: docker.io
+charts/clickhouse/charts/zookeeper/values.yaml-    repository: bitnami/bitnami-shell
+charts/clickhouse/charts/zookeeper/values.yaml-    tag: 11-debian-11-r98
+charts/clickhouse/values.yaml:image:
+charts/clickhouse/values.yaml-  registry: docker.io
+charts/clickhouse/values.yaml-  repository: bitnami/clickhouse
+charts/clickhouse/values.yaml-  tag: 23.3.1-debian-11-r0
+charts/clickhouse/values.yaml:##     image: your-image
+charts/clickhouse/values.yaml-##     imagePullPolicy: Always
+charts/clickhouse/values.yaml-##     ports:
+charts/clickhouse/values.yaml-##       - name: portname
+charts/clickhouse/values.yaml:##    image: your-image
+charts/clickhouse/values.yaml-##    imagePullPolicy: Always
+charts/clickhouse/values.yaml-##    command: ['sh', '-c', 'echo "hello world"']
+charts/clickhouse/values.yaml-##
+charts/clickhouse/values.yaml:  image:
+charts/clickhouse/values.yaml-    registry: docker.io
+charts/clickhouse/values.yaml-    repository: bitnami/bitnami-shell
+charts/clickhouse/values.yaml-    tag: 11-debian-11-r101
+charts/prometheus/charts/kube-state-metrics/values.yaml:image:
+charts/prometheus/charts/kube-state-metrics/values.yaml-  repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+charts/prometheus/charts/kube-state-metrics/values.yaml-  tag: v2.5.0
+charts/prometheus/charts/kube-state-metrics/values.yaml-  pullPolicy: IfNotPresent
+charts/prometheus/values.yaml:  image:
+charts/prometheus/values.yaml-    repository: quay.io/prometheus/alertmanager
+charts/prometheus/values.yaml-    tag: v0.24.0
+charts/prometheus/values.yaml-    pullPolicy: IfNotPresent
+charts/prometheus/values.yaml:    image:
+charts/prometheus/values.yaml-      repository: jimmidyson/configmap-reload
+charts/prometheus/values.yaml-      tag: v0.5.0
+charts/prometheus/values.yaml-      pullPolicy: IfNotPresent
+charts/prometheus/values.yaml:    image:
+charts/prometheus/values.yaml-      repository: jimmidyson/configmap-reload
+charts/prometheus/values.yaml-      tag: v0.5.0
+charts/prometheus/values.yaml-      pullPolicy: IfNotPresent
+charts/prometheus/values.yaml:  image:
+charts/prometheus/values.yaml-    repository: quay.io/prometheus/node-exporter
+charts/prometheus/values.yaml-    tag: v1.3.1
+charts/prometheus/values.yaml-    pullPolicy: IfNotPresent
+charts/prometheus/values.yaml:  #        image: nginx
+charts/prometheus/values.yaml-  sidecarContainers: {}
+charts/prometheus/values.yaml-
+charts/prometheus/values.yaml-  # sidecarTemplateValues - context to be used in template for sidecarContainers
+charts/prometheus/values.yaml:  #   image: "{{ .Values.server.sidecarTemplateValues.repository }}:{{ .Values.server.sidecarTemplateValues.tag }}"
+charts/prometheus/values.yaml-  #   ...
+charts/prometheus/values.yaml-  #
+charts/prometheus/values.yaml-  sidecarTemplateValues: {}
+charts/prometheus/values.yaml:  image:
+charts/prometheus/values.yaml-    repository: quay.io/prometheus/prometheus
+charts/prometheus/values.yaml-    tag: v2.39.1
+charts/prometheus/values.yaml-    pullPolicy: IfNotPresent
+charts/prometheus/values.yaml:  image:
+charts/prometheus/values.yaml-    repository: prom/pushgateway
+charts/prometheus/values.yaml-    tag: v1.4.3
+charts/prometheus/values.yaml-    pullPolicy: IfNotPresent
+values.yaml:  image:
+values.yaml-    repository: ghcr.io/coroot/coroot
+values.yaml-    pullPolicy: IfNotPresent
+values.yaml-    tag: ""
+values.yaml:  image:
+values.yaml-    repository: ghcr.io/coroot/coroot-connect
+values.yaml-    pullPolicy: IfNotPresent
+values.yaml-    tag: "2.0.2"
+list_coroot_images:charts/pyroscope/values.yaml:image:
+list_coroot_images-charts/pyroscope/values.yaml-  # -- image to use for deploying
+list_coroot_images-charts/pyroscope/values.yaml-  repository: pyroscope/pyroscope
+list_coroot_images-charts/pyroscope/values.yaml-  # -- Image pull policy
+list_coroot_images:charts/pyroscope/values.yaml:#   image: busybox
+list_coroot_images-charts/pyroscope/values.yaml-#   - sh
+list_coroot_images-charts/pyroscope/values.yaml-#   - -c
+list_coroot_images-charts/pyroscope/values.yaml-#   - chmod 777 /var/lib/pyroscope && chown -R 101:101 /var/lib/pyroscope
+list_coroot_images:charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml:  image: busybox:latest
+list_coroot_images-charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-initContainers:
+list_coroot_images-charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-  - name: test
+list_coroot_images-charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-    command:
+list_coroot_images:charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml:    image: "{{ .Values.global.image }}"
+list_coroot_images-charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-    volumeMounts:
+list_coroot_images-charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-      - name: test
+list_coroot_images-charts/opentelemetry-collector/examples/daemonset-lifecycle-hooks/values.yaml-        mountPath: /test
+list_coroot_images:charts/opentelemetry-collector/values.yaml:image:
+list_coroot_images-charts/opentelemetry-collector/values.yaml-  # If you want to use the core image `otel/opentelemetry-collector`, you also need to change `command.name` value to `otelcol`.
+list_coroot_images-charts/opentelemetry-collector/values.yaml-  repository: otel/opentelemetry-collector-contrib
+list_coroot_images-charts/opentelemetry-collector/values.yaml-  pullPolicy: IfNotPresent
+list_coroot_images:charts/opentelemetry-collector/values.yaml:#     image: busybox:latest
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#     volumeMounts:
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#       - name: test
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#         mountPath: /test
+list_coroot_images:charts/opentelemetry-collector/values.yaml:#     image: busybox:latest
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#     command:
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#       - cp
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#     args:
+list_coroot_images:charts/opentelemetry-collector/values.yaml:#    image: busybox:latest
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#    command:
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#      - sh
+list_coroot_images-charts/opentelemetry-collector/values.yaml-#      - '-c'
+list_coroot_images:charts/pyroscope-ebpf/values.yaml:image:
+list_coroot_images-charts/pyroscope-ebpf/values.yaml-  # -- image to use for deploying
+list_coroot_images-charts/pyroscope-ebpf/values.yaml-  repository: pyroscope/pyroscope
+list_coroot_images-charts/pyroscope-ebpf/values.yaml-  # -- Image pull policy
+list_coroot_images:charts/node-agent/values.yaml:image:
+list_coroot_images-charts/node-agent/values.yaml-  repository: ghcr.io/coroot/coroot-node-agent
+list_coroot_images-charts/node-agent/values.yaml-  pullPolicy: IfNotPresent
+list_coroot_images-charts/node-agent/values.yaml-  tag: ""
+list_coroot_images:charts/clickhouse/charts/zookeeper/values.yaml:image:
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-  registry: docker.io
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-  repository: bitnami/zookeeper
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-  tag: 3.8.1-debian-11-r15
+list_coroot_images:charts/clickhouse/charts/zookeeper/values.yaml:##     image: your-image
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-##     imagePullPolicy: Always
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-##     ports:
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-##       - name: portname
+list_coroot_images:charts/clickhouse/charts/zookeeper/values.yaml:##     image: your-image
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-##     imagePullPolicy: Always
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-##     ports:
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-##       - name: portname
+list_coroot_images:charts/clickhouse/charts/zookeeper/values.yaml:  image:
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-    registry: docker.io
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-    repository: bitnami/bitnami-shell
+list_coroot_images-charts/clickhouse/charts/zookeeper/values.yaml-    tag: 11-debian-11-r98
+list_coroot_images:charts/clickhouse/values.yaml:image:
+list_coroot_images-charts/clickhouse/values.yaml-  registry: docker.io
+list_coroot_images-charts/clickhouse/values.yaml-  repository: bitnami/clickhous

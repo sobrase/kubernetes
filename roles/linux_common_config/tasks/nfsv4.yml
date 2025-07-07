@@ -1,0 +1,10 @@
+  #Modify dhclient to publish hostname  
+- lineinfile: 
+    path: /etc/idmapd.conf
+    regexp: '^# Domain ='
+    line: 'Domain = defaultv4iddomain.com'
+  become: true
+
+- name: update nfs id mapping
+  shell: /usr/sbin/nfsidmap -c
+  become: true

@@ -1,0 +1,6 @@
+---
+- { include: setup.yml}
+
+- { include: docker_apt_key.yml}
+- { include: docker_repository.yml}
+- { include: docker-install.yml}
