@@ -16,7 +16,10 @@ FILES=(
   "deployments/common/nginx-config.yaml"
   "deployments/rbac/rbac.yaml"
   "deployments/daemon-set/nginx-ingress.yaml"
-  "deployments/daemon-set/nginx-plus-ingress.yaml"
+  # The commercial NGINX Plus manifest and related image are intentionally
+  # excluded to keep the script fully usable in air-gapped environments
+  # without requiring a commercial license.
+  # "deployments/daemon-set/nginx-plus-ingress.yaml"
 )
 
 for file in "${FILES[@]}"; do
