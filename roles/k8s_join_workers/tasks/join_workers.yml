@@ -4,6 +4,14 @@
   shell: "kubeadm reset --force --cri-socket=unix:///var/run/crio/crio.sock"
   become: true
 
+- name: Load predownloaded Kubernetes images
+  shell: |
+    for img in {{ offline_dir }}/images/*.tar.gz; do
+      crictl load "$img"
+    done
+  when: offline_dir is defined
+  become: true
+
 - name: Generate join token for workers
   shell: |
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && \
