@@ -9,7 +9,7 @@
   # - hosts: "{{ groups['masters'][0] }}"
   #   roles:
   #     - roles/k8s_init_first_master
-  #     - roles/k8s_calico
+  #     - roles/k8s_cilium
 
   # - hosts: "{{ groups['masters'][1:] }}"
   #   roles:

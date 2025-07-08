@@ -1,0 +1,12 @@
+# Cilium Helm values
+image:
+  repository: quay.io/cilium/cilium
+  tag: "{{ cilium.version }}"
+
+operator:
+  image:
+    repository: quay.io/cilium/operator
+    tag: "{{ cilium.version }}"
+
+# enable kube-proxy replacement if requested
+kubeProxyReplacement: {{ 'strict' if cilium.mode == 'ebpf' else 'partial' }}

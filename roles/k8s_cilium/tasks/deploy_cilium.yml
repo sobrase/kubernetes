@@ -1,0 +1,23 @@
+- name: create cilium dir
+  file:
+    path: ".kube/cilium"
+    state: directory
+
+- name: Copy cilium helm chart
+  ansible.posix.synchronize:
+    src: cilium_chart
+    dest: "{{ ansible_env.HOME }}/.kube/cilium/"
+
+- name: Push values file
+  template:
+    src: values.yaml.j2
+    dest: .kube/cilium/cilium_chart/values.yaml
+
+- name: Deploy cilium with helm
+  kubernetes.core.helm:
+    name: cilium
+    kubeconfig: .kube/config
+    chart_ref: .kube/cilium/cilium_chart
+    release_namespace: kube-system
+    create_namespace: false
+    atomic: true

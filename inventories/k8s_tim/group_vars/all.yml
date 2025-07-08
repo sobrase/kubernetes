@@ -34,7 +34,8 @@ kubeadm_gpg: repo_k8s_dev_lan.gpg
 serviceSubnet: "10.10.0.0/16"
 podSubnet: "10.11.0.0/16"
 dnsDomain: cluster.local
-calico:
+cilium:
+  version: "1.14.2"
   mode: default # values are ebpf or default
 
 openebs:
