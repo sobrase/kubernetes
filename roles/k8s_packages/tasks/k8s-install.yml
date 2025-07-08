@@ -27,7 +27,7 @@
 - name: Load pre-downloaded CRI-O images
   shell: "crictl load {{ item }}"
   with_fileglob:
-    - "/opt/crio-images/*.tar"
+    - "{{ offline_dir }}/crio/images/*.tar"
   become: true
   when: container_runtime == "crio"
 

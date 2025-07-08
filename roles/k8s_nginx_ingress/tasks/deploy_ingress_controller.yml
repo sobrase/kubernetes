@@ -22,7 +22,7 @@
 - name: Load nginx ingress images
   shell: |
     for tar in {{ nginx_ingress_image_dir }}/*.tar; do
-      [ -f "$tar" ] && docker load -i "$tar"
+      [ -f "$tar" ] && crictl load "$tar"
     done
   args:
     executable: /bin/bash

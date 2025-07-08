@@ -1,1 +1,3 @@
-cilium_offline_dir: cilium_offline
+# Local directory containing Cilium images and chart
+# Use the common offline directory as base path
+cilium_offline_dir: "{{ offline_dir }}/cilium"
