@@ -4,9 +4,22 @@
   shell: "kubeadm reset --force --cri-socket=unix:///var/run/crio/crio.sock"
   become: true
 
+- name: Ensure Kubernetes offline directory exists
+  file:
+    path: "{{ offline_dir }}/k8s"
+    state: directory
+  when: offline_dir is defined
+
+- name: Copy Kubernetes images to worker
+  ansible.posix.synchronize:
+    src: "{{ offline_dir }}/k8s/images"
+    dest: "{{ offline_dir }}/k8s/"
+  delegate_to: localhost
+  when: offline_dir is defined
+
 - name: Load predownloaded Kubernetes images
   shell: |
-    for img in {{ offline_dir }}/images/*.tar.gz; do
+    for img in {{ offline_dir }}/k8s/images/*.tar.gz; do
       crictl load "$img"
     done
   when: offline_dir is defined

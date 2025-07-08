@@ -14,11 +14,12 @@
 
 - name: Copy Gateway API manifests
   copy:
-    src: "{{ item }}"
+    src: "{{ gateway_api_offline_dir }}/manifests/{{ item }}"
     dest: ".kube/gateway-api/{{ item }}"
     owner: "{{ ansible_user | default(ansible_user_id) }}"
     group: "{{ ansible_user | default(ansible_user_id) }}"
     mode: 0644
+    remote_src: true
   with_items:
     - gateway.networking.k8s.io_gatewayclasses.yaml
     - gateway.networking.k8s.io_gateways.yaml
