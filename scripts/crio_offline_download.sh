@@ -1,22 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CRIO_VERSION="${CRIO_VERSION:-1.32.6}"
+CRIO_VERSION="${CRIO_VERSION:-1.32}"
+OS_FLAVOR="${OS_FLAVOR:-xUbuntu_22.04}"
+ARCH="${ARCH:-amd64}"
 OFFLINE_DIR="${OFFLINE_DIR:-$(pwd)/offline}"
 DOWNLOAD_DIR="$OFFLINE_DIR/crio"
 
 mkdir -p "$DOWNLOAD_DIR/packages" "$DOWNLOAD_DIR/images"
 
-# Download CRI-O packages and dependencies for offline installation
-if command -v apt-get >/dev/null; then
-    echo "Downloading CRI-O packages for version $CRIO_VERSION"
-    sudo apt-get update
-    sudo apt-get install --download-only -y "cri-o=$CRIO_VERSION*" "cri-o-runc=$CRIO_VERSION*"
-    cp /var/cache/apt/archives/cri-o*.deb "$DOWNLOAD_DIR/packages/" || true
-    cp /var/cache/apt/archives/cri-o-runc*.deb "$DOWNLOAD_DIR/packages/" || true
-else
-    echo "apt-get not found. Skipping package download." >&2
-fi
+# Download CRI-O packages from the openSUSE repository
+REPO_BASE="https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/${CRIO_VERSION}/${OS_FLAVOR}/${ARCH}/"
+echo "Fetching CRI-O packages from $REPO_BASE"
+PACKAGE_URLS=$(curl -fsSL "$REPO_BASE" \
+  | grep -oE "href=\"[^\"]*cri-o[^\"]*\\.(deb|rpm)\"" \
+  | cut -d'"' -f2)
+
+for url in $PACKAGE_URLS; do
+    file="$DOWNLOAD_DIR/packages/$(basename "$url")"
+    echo "Downloading $url"
+    curl -L "$REPO_BASE$url" -o "$file"
+done
 
 # Container images used by CRI-O
 IMAGES=(
