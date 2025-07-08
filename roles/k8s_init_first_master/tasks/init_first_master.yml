@@ -22,7 +22,7 @@
     #  no_proxy: "$no_proxy,.svc,.svc.cluster.local"
     register: init_cluster
     become: true
-    when: calico.mode == "default"
+    when: cilium.mode == "default"
 
   - name: Init Kubernetes cluster without kube-proxy
     shell: export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && kubeadm init --skip-phases=addon/kube-proxy --config /root/kubeadm.yaml --upload-certs
@@ -33,7 +33,7 @@
     #  no_proxy: "$no_proxy,.svc,.svc.cluster.local"
     register: init_cluster
     become: true
-    when: calico.mode == "ebpf"
+    when: cilium.mode == "ebpf"
   
   rescue: 
     - name: Print debug information

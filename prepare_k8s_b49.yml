@@ -1,11 +1,15 @@
----
-# Example initial setup commented out for brevity
-# - hosts: all
-#   roles:
-#     - roles/apt_common_packages
-#     - roles/k8s_packages
-#     - roles/k8s_config
-#     - roles/permit_ansible_pipelining
+
+#    - hosts: all
+#      roles:
+#        - roles/apt_common_packages
+#        - roles/k8s_packages
+#        - roles/k8s_config
+#        - roles/permit_ansible_pipelining
+      
+  #  - hosts: "{{ groups['masters'][0] }}"
+  #    roles:
+       #- roles/k8s_init_first_master
+       # - roles/k8s_cilium
 
 # - hosts: "{{ groups['masters'][0] }}"
 #   roles:
