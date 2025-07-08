@@ -2,7 +2,8 @@
 set -euo pipefail
 
 KUBE_VERSION="${KUBE_VERSION:-1.32.0}"
-DOWNLOAD_DIR="${DOWNLOAD_DIR:-$(pwd)/k8s_offline}"
+OFFLINE_DIR="${OFFLINE_DIR:-$(pwd)/offline}"
+DOWNLOAD_DIR="$OFFLINE_DIR/k8s"
 
 mkdir -p "$DOWNLOAD_DIR/images" "$DOWNLOAD_DIR/packages"
 

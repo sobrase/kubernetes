@@ -2,7 +2,8 @@
 set -euo pipefail
 
 NGINX_IC_VERSION="${NGINX_IC_VERSION:-4.0.1}"
-DOWNLOAD_DIR="${DOWNLOAD_DIR:-$(pwd)/nginx_ingress_offline}"
+OFFLINE_DIR="${OFFLINE_DIR:-$(pwd)/offline}"
+DOWNLOAD_DIR="$OFFLINE_DIR/nginx_ingress"
 
 mkdir -p "$DOWNLOAD_DIR/manifests" "$DOWNLOAD_DIR/images"
 

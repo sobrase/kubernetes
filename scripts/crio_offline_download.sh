@@ -2,7 +2,8 @@
 set -euo pipefail
 
 CRIO_VERSION="${CRIO_VERSION:-1.32.6}"
-DOWNLOAD_DIR="${DOWNLOAD_DIR:-$(pwd)/crio_offline}"
+OFFLINE_DIR="${OFFLINE_DIR:-$(pwd)/offline}"
+DOWNLOAD_DIR="$OFFLINE_DIR/crio"
 
 mkdir -p "$DOWNLOAD_DIR/packages" "$DOWNLOAD_DIR/images"
 
@@ -31,5 +32,5 @@ for img in "${IMAGES[@]}"; do
 done
 
 echo "All CRI-O assets downloaded in $DOWNLOAD_DIR"
-echo "Transfer image tarballs to /srv/k8s_offline/crio/images/ on target nodes and load with:"
-echo "  sudo crictl load /srv/k8s_offline/crio/images/<image>.tar"
+echo "Transfer image tarballs to $DOWNLOAD_DIR/images on target nodes and load with:"
+echo "  sudo crictl load $DOWNLOAD_DIR/images/<image>.tar"
