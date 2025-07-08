@@ -11,13 +11,13 @@
     group: "{{ ansible_become_user }}"
   become: true
 
-- name: Load predownloaded Kubernetes images
-  shell: |
-    for img in {{ offline_dir }}/images/*.tar.gz; do
-      crictl load "$img"
-    done
-  when: offline_dir is defined
-  become: true
+  - name: Load predownloaded Kubernetes images
+    shell: |
+      for img in {{ offline_dir }}/k8s/images/*.tar.gz; do
+        crictl load "$img"
+      done
+    when: offline_dir is defined
+    become: true
 
 - name: Init kubernetes cluster
   block: 
