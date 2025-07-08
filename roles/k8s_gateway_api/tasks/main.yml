@@ -1,0 +1,2 @@
+---
+- { include: deploy_gateway_api.yml }

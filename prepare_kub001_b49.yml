@@ -1,28 +1,26 @@
 ---
-  # - hosts: all
-  #   roles:
-  #     - roles/apt_common_packages
-  #     - roles/k8s_packages
-  #     - roles/k8s_config
-  #     - roles/permit_ansible_pipelining
-      
-  # - hosts: "{{ groups['masters'][0] }}"
-  #   roles:
-  #     - roles/k8s_init_first_master
-  #     - roles/k8s_calico
+# Example setup removed for brevity
+# - hosts: all
+#   roles:
+#     - roles/apt_common_packages
+#     - roles/k8s_packages
+#     - roles/k8s_config
+#     - roles/permit_ansible_pipelining
 
-  # - hosts: "{{ groups['masters'][1:] }}"
-  #   roles:
-  #     - roles/k8s_join_others_masters
+# - hosts: "{{ groups['masters'][0] }}"
+#   roles:
+#     - roles/k8s_init_first_master
+#     - roles/k8s_calico
 
-  # - hosts: workers
-  #   roles:
-  #     - roles/k8s_join_workers
+# - hosts: "{{ groups['masters'][1:] }}"
+#   roles:
+#     - roles/k8s_join_others_masters
 
-  - hosts: "{{ groups['masters'][0] }}"
-    roles:
-  #     - roles/k8s_local_storage
-  #     - roles/k8s_nginx_ingress
-  #     - roles/k8s_vault
-      - roles/k8s_cert-manager
-  #     - roles/k8s_dashboard
+# - hosts: workers
+#   roles:
+#     - roles/k8s_join_workers
+
+- hosts: "{{ groups['masters'][0] }}"
+  roles:
+    - roles/k8s_gateway_api
+    - roles/k8s_cert-manager

@@ -1,0 +1,44 @@
+- name: create gateway api dir
+  file:
+    path: ".kube/gateway-api"
+    state: directory
+
+- name: Copy Gateway API manifests
+  copy:
+    src: "{{ item }}"
+    dest: ".kube/gateway-api/{{ item }}"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0644
+  with_items:
+    - gateway.networking.k8s.io_gatewayclasses.yaml
+    - gateway.networking.k8s.io_gateways.yaml
+    - gateway.networking.k8s.io_grpcroutes.yaml
+    - gateway.networking.k8s.io_httproutes.yaml
+    - gateway.networking.k8s.io_referencegrants.yaml
+    - nginx-gateway-crds.yaml
+    - nginx-gateway-deploy.yaml
+
+- name: Apply Gateway and NGINX Gateway Fabric CRDs
+  command: |
+    kubectl --kubeconfig=.kube/config apply -f .kube/gateway-api/{{ item }}
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true
+  with_items:
+    - gateway.networking.k8s.io_gatewayclasses.yaml
+    - gateway.networking.k8s.io_gateways.yaml
+    - gateway.networking.k8s.io_grpcroutes.yaml
+    - gateway.networking.k8s.io_httproutes.yaml
+    - gateway.networking.k8s.io_referencegrants.yaml
+    - nginx-gateway-crds.yaml
+
+- name: Deploy NGINX Gateway Fabric
+  command: kubectl --kubeconfig=.kube/config apply -f .kube/gateway-api/nginx-gateway-deploy.yaml
+  register: deploy_result
+  until: deploy_result.rc == 0
+  retries: 5
+  delay: 2
+  ignore_errors: true

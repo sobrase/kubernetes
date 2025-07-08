@@ -1,8 +1,7 @@
 ---
-
-  - hosts: servers
-    roles:
-      - roles/apt_common_package
-      - roles/docker_package
-      - roles/linux_common_config
-      - roles/permit_ansible_pipelining
+- hosts: servers
+  roles:
+    - roles/apt_common_package
+    - roles/docker_package
+    - roles/linux_common_config
+    - roles/permit_ansible_pipelining
