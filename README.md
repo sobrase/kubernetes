@@ -11,7 +11,9 @@ from these paths with `crictl` so that no internet connection is required.
 
 Before running the download script, ensure that the Kubernetes apt repository is
 configured on the host. If it is missing, `k8s_offline_download.sh` will attempt
-to add the official repository from `pkgs.k8s.io` automatically.
+to add the official repository from `pkgs.k8s.io` automatically. In air-gapped
+environments you can set the `K8S_REPO` and `K8S_KEY_FILE` environment
+variables to point the script to a local mirror and its GPG key.
 
 
 
