@@ -1,0 +1,3 @@
+---
+# Directory containing nginx ingress images saved as tar archives
+nginx_ingress_image_dir: "/opt/nginx_ingress/images"
