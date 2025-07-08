@@ -19,6 +19,15 @@
     - { path: 'nginx-ingress.{{ dnsDomain }}.crt' }
     - { path: 'nginx-ingress.{{ dnsDomain }}.key' }
 
+- name: Load nginx ingress images
+  shell: |
+    for tar in {{ nginx_ingress_image_dir }}/*.tar; do
+      [ -f "$tar" ] && docker load -i "$tar"
+    done
+  args:
+    executable: /bin/bash
+  become: true
+
 - name: Push nginx-ingress manifest files
   template:
     src: "{{ item }}.j2"
