@@ -5,7 +5,8 @@ set -euo pipefail
 NGINX_GATEWAY_VERSION="${NGINX_GATEWAY_VERSION:-2.0.1}"
 # Gateway API release to download
 GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.2.0}"
-OUTDIR="${OUTDIR:-offline}"
+OFFLINE_DIR="${OFFLINE_DIR:-$(pwd)/offline}"
+OUTDIR="$OFFLINE_DIR/gateway_api"
 
 mkdir -p "$OUTDIR/manifests" "$OUTDIR/images"
 

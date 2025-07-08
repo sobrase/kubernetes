@@ -2,7 +2,8 @@
 set -euo pipefail
 
 CILIUM_VERSION=${CILIUM_VERSION:-"1.16.0"}
-DOWNLOAD_DIR=${DOWNLOAD_DIR:-"$(pwd)/cilium_offline"}
+OFFLINE_DIR="${OFFLINE_DIR:-$(pwd)/offline}"
+DOWNLOAD_DIR="$OFFLINE_DIR/cilium"
 
 mkdir -p "$DOWNLOAD_DIR/images" "$DOWNLOAD_DIR"
 

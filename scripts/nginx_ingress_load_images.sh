@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_DIR="${IMAGE_DIR:-/srv/k8s_offline/nginx_ingress/images}"
+OFFLINE_DIR="${OFFLINE_DIR:-/srv/k8s_offline}"
+IMAGE_DIR="${IMAGE_DIR:-$OFFLINE_DIR/nginx_ingress/images}"
 
 if [ ! -d "$IMAGE_DIR" ]; then
   echo "Image directory $IMAGE_DIR does not exist" >&2
