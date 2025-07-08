@@ -14,11 +14,12 @@ ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
 # Common
 ntp_server_ip: '192.168.17.4'
+offline_dir: /srv/k8s_offline
 
 # Kubernetes
 cluster_name: cluster.local
 container_runtime: crio
-kube_version: 1.26.3-00
+kube_version: 1.32.0-00
 controlPlaneEndpoint: kmsr01.johto.tdmc:6443
 vault_rootpki_endpoint: vault.dev.lan
 vault_cloud_tmp_tkn: hvs.vomyc81HjZTQ5aaYYJniLkL1
@@ -29,7 +30,7 @@ cluster_token: abcdef.0123456789abcdef
 certificateKey: 76e20fb6cbfeef9fbe0931bfe851281fb482b23efaa98e856aba4877574df077
 repo_k8s_kubeadm: http://rpo01.kalos.tdmc:8080/kubeadm/  kubernetes-xenial main
 repo_k8s_crio_main: http://rpo01.kalos.tdmc:8080/cri-o/ .-- main
-repo_k8s_crio: http://rpo01.kalos.tdmc:8080/cri-o_1.26/ .-- main
+repo_k8s_crio: http://rpo01.kalos.tdmc:8080/cri-o_1.32/ .-- main
 kubeadm_gpg: repo_k8s_dev_lan.gpg
 serviceSubnet: "10.10.0.0/16"
 podSubnet: "10.11.0.0/16"

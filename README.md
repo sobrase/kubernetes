@@ -1,5 +1,12 @@
 # pre_install
 
+## Offline usage
+Run `scripts/k8s_offline_download.sh` on a machine with internet access to
+download Kubernetes packages and container images for version 1.32. Copy the
+generated `k8s_offline` directory to each target node and set `offline_dir` in
+your inventory files accordingly. During deployment the playbooks will load
+images from this directory so that no internet connection is required.
+
 
 
 ## Getting started

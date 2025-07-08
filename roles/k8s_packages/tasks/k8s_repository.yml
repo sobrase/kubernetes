@@ -10,7 +10,7 @@
       state: present
     become: true
 
-  - name: Add cri-o 1.26 apt repository
+  - name: Add cri-o 1.32 apt repository
     apt_repository:
       repo: deb {{ repo_k8s_crio }}
       state: present

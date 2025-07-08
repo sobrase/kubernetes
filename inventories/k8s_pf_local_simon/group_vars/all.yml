@@ -13,8 +13,9 @@ ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
 
 ntp_server_ip: '10.192.2.1'
+offline_dir: /srv/k8s_offline
 # Kubernetes
-kube_version: v1.26.3
+kube_version: v1.32.0
 controlPlaneEndpoint: 10.192.2.133:6443
 token: abcdef.0123456789abcdef
 certificateKey: 76e20fb6cbfeef9fbe0931bfe851281fb482b23efaa98e856aba4877574df077
