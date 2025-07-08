@@ -24,6 +24,13 @@
   become: true
   when: container_runtime == "crio"
 
+- name: Load pre-downloaded CRI-O images
+  shell: "crictl load {{ item }}"
+  with_fileglob:
+    - "/opt/crio-images/*.tar"
+  become: true
+  when: container_runtime == "crio"
+
 # Hold k8s packages version to prevent update 
 - dpkg_selections:
     name : "{{ item }}"
