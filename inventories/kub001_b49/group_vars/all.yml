@@ -41,7 +41,7 @@ dnsDomain: kub001.dev.lan
 
 
 cilium:
-  version: "1.14.2"
+  version: "1.16.0"
   mode: default # values are ebpf or default
 
 # 1.8.x feature: --feature-gates SelfHosting=true

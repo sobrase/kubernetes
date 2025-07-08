@@ -36,7 +36,7 @@ serviceSubnet: "10.10.0.0/16"
 podSubnet: "10.11.0.0/16"
 dnsDomain: cluster.local
 cilium:
-  version: "1.14.2"
+  version: "1.16.0"
   mode: default # values are ebpf or default
 
 openebs:
