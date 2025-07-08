@@ -5,13 +5,33 @@
 
 - name: Copy cilium helm chart
   ansible.posix.synchronize:
-    src: cilium_chart
+    src: "{{ cilium_offline_dir | default('cilium_offline') }}/cilium_chart"
     dest: "{{ ansible_env.HOME }}/.kube/cilium/"
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy cilium images
+  ansible.posix.synchronize:
+    src: "{{ cilium_offline_dir | default('cilium_offline') }}/images"
+    dest: "{{ ansible_env.HOME }}/.kube/cilium/"
+  delegate_to: localhost
+  run_once: true
 
 - name: Push values file
   template:
     src: values.yaml.j2
     dest: .kube/cilium/cilium_chart/values.yaml
+
+- name: Load cilium images into container runtime
+  shell: |
+    if [ "{{ container_runtime }}" = "crio" ]; then
+      crictl load {{ item }}
+    else
+      docker load -i {{ item }}
+    fi
+  with_fileglob:
+    - .kube/cilium/images/*.tar
+  become: true
 
 - name: Deploy cilium with helm
   kubernetes.core.helm:
