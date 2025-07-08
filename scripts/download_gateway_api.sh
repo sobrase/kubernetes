@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Versions can be overridden via environment variables
 NGINX_GATEWAY_VERSION="${NGINX_GATEWAY_VERSION:-2.0.1}"
-GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.3.0}"
+# Gateway API release to download
+GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.2.0}"
 OUTDIR="${OUTDIR:-offline}"
 
 mkdir -p "$OUTDIR/manifests" "$OUTDIR/images"

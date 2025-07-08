@@ -3,6 +3,15 @@
     path: ".kube/gateway-api"
     state: directory
 
+- name: Load predownloaded gateway images
+  shell: gunzip -c "{{ item }}" | docker load
+  args:
+    executable: /bin/bash
+  loop: "{{ query('fileglob', gateway_api_offline_dir + '/images/*.tar.gz') }}"
+  loop_control:
+    label: "{{ item | basename }}"
+  become: true
+
 - name: Copy Gateway API manifests
   copy:
     src: "{{ item }}"
