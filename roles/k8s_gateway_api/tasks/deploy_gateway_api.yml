@@ -4,7 +4,7 @@
     state: directory
 
 - name: Load predownloaded gateway images
-  shell: gunzip -c "{{ item }}" | docker load
+  shell: gunzip -c "{{ item }}" | crictl load
   args:
     executable: /bin/bash
   loop: "{{ query('fileglob', gateway_api_offline_dir + '/images/*.tar.gz') }}"

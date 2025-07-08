@@ -1,3 +1,4 @@
 ---
 # Directory containing nginx ingress images saved as tar archives
-nginx_ingress_image_dir: "/opt/nginx_ingress/images"
+# Use the common offline directory so all components share the same base path
+nginx_ingress_image_dir: "{{ offline_dir }}/nginx_ingress/images"

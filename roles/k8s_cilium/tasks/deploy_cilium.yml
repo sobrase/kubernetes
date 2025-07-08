@@ -1,19 +1,22 @@
-- name: create cilium dir
+- name: create cilium directories
   file:
-    path: ".kube/cilium"
+    path: "{{ item }}"
     state: directory
+  loop:
+    - ".kube/cilium"
+    - "{{ offline_dir }}/cilium"
 
 - name: Copy cilium helm chart
   ansible.posix.synchronize:
-    src: "{{ cilium_offline_dir | default('cilium_offline') }}/cilium_chart"
+    src: "{{ cilium_offline_dir }}/cilium_chart"
     dest: "{{ ansible_env.HOME }}/.kube/cilium/"
   delegate_to: localhost
   run_once: true
 
 - name: Copy cilium images
   ansible.posix.synchronize:
-    src: "{{ cilium_offline_dir | default('cilium_offline') }}/images"
-    dest: "{{ ansible_env.HOME }}/.kube/cilium/"
+    src: "{{ cilium_offline_dir }}/images"
+    dest: "{{ offline_dir }}/cilium/"
   delegate_to: localhost
   run_once: true
 
@@ -23,14 +26,9 @@
     dest: .kube/cilium/cilium_chart/values.yaml
 
 - name: Load cilium images into container runtime
-  shell: |
-    if [ "{{ container_runtime }}" = "crio" ]; then
-      crictl load {{ item }}
-    else
-      docker load -i {{ item }}
-    fi
+  shell: crictl load {{ item }}
   with_fileglob:
-    - .kube/cilium/images/*.tar
+    - "{{ offline_dir }}/cilium/images/*.tar"
   become: true
 
 - name: Deploy cilium with helm

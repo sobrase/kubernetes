@@ -1,1 +1,3 @@
-gateway_api_offline_dir: "/srv/offline/gateway_api"
+# Directory containing Gateway API images and manifests
+# Placed under the common offline directory
+gateway_api_offline_dir: "{{ offline_dir }}/gateway_api"

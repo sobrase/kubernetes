@@ -31,5 +31,5 @@ for img in "${IMAGES[@]}"; do
 done
 
 echo "All CRI-O assets downloaded in $DOWNLOAD_DIR"
-echo "Transfer image tarballs to /opt/crio-images/ on target nodes and load with:"
-echo "  sudo crictl load /opt/crio-images/<image>.tar"
+echo "Transfer image tarballs to /srv/k8s_offline/crio/images/ on target nodes and load with:"
+echo "  sudo crictl load /srv/k8s_offline/crio/images/<image>.tar"
