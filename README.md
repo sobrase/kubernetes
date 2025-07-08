@@ -15,6 +15,10 @@ to add the official repository from `pkgs.k8s.io` automatically. In air-gapped
 environments you can set the `K8S_REPO` and `K8S_KEY_FILE` environment
 variables to point the script to a local mirror and its GPG key.
 
+**Note:** The legacy repositories `apt.kubernetes.io` and `yum.kubernetes.io`
+are deprecated and frozen as of September 13, 2023. Use `pkgs.k8s.io` for all
+package downloads including Kubernetes versions released after that date.
+
 
 
 ## Getting started

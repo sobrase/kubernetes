@@ -26,9 +26,8 @@ if ! apt-cache show kubeadm >/dev/null 2>&1; then
     REPO="deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBE_VERSION%%.*}/deb/ /"
 
     if ! curl -fsSL "$KEY_URL" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg; then
-      echo "Primary key download failed, falling back to apt.kubernetes.io"
-      curl -fsSL "https://packages.cloud.google.com/apt/doc/apt-key.gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-      REPO="deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+      echo "Failed to download key from $KEY_URL" >&2
+      exit 1
     fi
   fi
 
