@@ -8,7 +8,7 @@ DOWNLOAD_DIR="$OFFLINE_DIR/cilium"
 mkdir -p "$DOWNLOAD_DIR/images" "$DOWNLOAD_DIR"
 
 # Download helm chart
-CHART_URL="https://github.com/cilium/cilium/releases/download/v${CILIUM_VERSION}/cilium-${CILIUM_VERSION}.tgz"
+CHART_URL="https://helm.cilium.io/cilium-${CILIUM_VERSION}.tgz"
 echo "Downloading Cilium chart $CHART_URL"
 curl -L "$CHART_URL" -o "$DOWNLOAD_DIR/cilium-${CILIUM_VERSION}.tgz"
 
@@ -18,7 +18,7 @@ tar -xzf "$DOWNLOAD_DIR/cilium-${CILIUM_VERSION}.tgz" -C "$DOWNLOAD_DIR"
 mv "$DOWNLOAD_DIR/cilium" "$DOWNLOAD_DIR/cilium_chart" 2>/dev/null || true
 
 # Render manifests and collect image list
-helm template cilium "$DOWNLOAD_DIR/cilium_chart" --version "$CILIUM_VERSION" --namespace kube-system --include-crds > "$DOWNLOAD_DIR/cilium-rendered.yaml"
+helm template cilium "$DOWNLOAD_DIR/cilium_chart/cilium" --namespace kube-system --include-crds > "$DOWNLOAD_DIR/cilium-rendered.yaml"
 grep -oE 'image:.*' "$DOWNLOAD_DIR/cilium-rendered.yaml" | awk '{print $2}' | sort -u > "$DOWNLOAD_DIR/images.txt"
 
 # Pull and save images for offline use
