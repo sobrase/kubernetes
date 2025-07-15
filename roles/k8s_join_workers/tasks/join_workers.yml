@@ -1,7 +1,7 @@
 ---
 
 - name: Reset Kubernetes component
-  shell: "kubeadm reset --force --cri-socket=unix:///var/run/crio/crio.sock"
+  shell: "kubeadm reset --force --cri-socket=unix:///var/run/{{ container_runtime }}/{{ container_runtime }}.sock"
   become: true
 
 - name: Ensure Kubernetes offline directory exists
@@ -40,7 +40,7 @@
 - name: Run kubeadm join
   shell: |
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH && \
-    {{ kubeadm_join }} --cri-socket=unix:///var/run/crio/crio.sock
+    {{ kubeadm_join }} --cri-socket=unix:///var/run/{{ container_runtime }}/{{ container_runtime }}.sock
   become: true 
 
 - name: Recreate kube-dns
