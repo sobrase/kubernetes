@@ -12,7 +12,7 @@ localAPIEndpoint:
   advertiseAddress: {{ guest_ip }}
   bindPort: 6443
 nodeRegistration:
-  criSocket: unix:///var/run/crio/crio.sock
+  criSocket: unix:///var/run/{{ container_runtime }}/{{ container_runtime }}.sock
   imagePullPolicy: IfNotPresent
   name: {{ groups['masters'][0] }}
   taints: null

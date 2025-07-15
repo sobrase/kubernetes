@@ -4,7 +4,7 @@
 Run `scripts/offline_download_all.sh` on a machine with internet access to
 download all required container images and manifests. The script stores
 everything under the `offline` directory by default using component specific
-subfolders such as `crio`, `k8s`, `cilium`, `nginx_ingress` and
+subfolders such as `containerd`, `k8s`, `cilium`, `nginx_ingress` and
 `gateway_api`. Copy this directory to each target node and set `offline_dir` in
 your inventory files accordingly. During deployment the playbooks load images
 from these paths with `crictl` so that no internet connection is required.

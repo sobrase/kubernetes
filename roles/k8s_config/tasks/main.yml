@@ -4,5 +4,5 @@
 - { include: ntp.yml }
 - { include: swapoff.yml}
 - { include: modules.yml}
-- { include: crio.yml}
+- { include: containerd.yml}
 #   when: container_runtime == "crio"

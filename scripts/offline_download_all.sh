@@ -8,7 +8,7 @@ export OFFLINE_DIR
 
 "$SCRIPT_DIR/k8s_offline_download.sh"
 "$SCRIPT_DIR/cni_offline_download.sh"
-"$SCRIPT_DIR/crio_offline_download.sh"
+"$SCRIPT_DIR/containerd_offline_download.sh"
 "$SCRIPT_DIR/cilium_offline_download.sh"
 "$SCRIPT_DIR/nginx_ingress_offline_download.sh"
 "$SCRIPT_DIR/download_gateway_api.sh"

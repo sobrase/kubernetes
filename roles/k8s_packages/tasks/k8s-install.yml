@@ -6,12 +6,12 @@
       - parted
   become: true
 
-- name: Install CRI-O packages from offline directory
+- name: Install containerd packages from offline directory
   apt:
     deb: "{{ item }}"
-  loop: "{{ lookup('fileglob', offline_dir + '/crio/packages/*.deb', wantlist=True) }}"
+  loop: "{{ lookup('fileglob', offline_dir + '/containerd/packages/*.deb', wantlist=True) }}"
   become: true
-  when: container_runtime == "crio"
+  when: container_runtime == "containerd"
 
 - name: Install Kubernetes binaries from offline archive
   copy:
@@ -25,28 +25,26 @@
     - kubectl
   become: true
 
-- name: Enable and check crio service
+- name: Enable and check containerd service
   systemd:
-    name: crio
+    name: containerd
     daemon_reload: yes
     state: started
     enabled: yes
   register: started_kubelet
   become: true
-  when: container_runtime == "crio"
+  when: container_runtime == "containerd"
 
-- name: Load pre-downloaded CRI-O images
-  shell: "crictl load {{ item }}"
+- name: Load pre-downloaded containerd images
+  shell: "ctr -n k8s.io images import {{ item }}"
   with_fileglob:
-    - "{{ offline_dir }}/crio/images/*.tar"
+    - "{{ offline_dir }}/containerd/images/*.tar"
   become: true
-  when: container_runtime == "crio"
+  when: container_runtime == "containerd"
 
-# Hold CRI-O packages version to prevent update
+# Hold containerd package version to prevent update
 - dpkg_selections:
-    name : "{{ item }}"
+    name: containerd.io
     selection: hold
   become: true
-  loop:
-    - cri-o
-    - cri-o-runc  when: container_runtime == "crio"
+  when: container_runtime == "containerd"
